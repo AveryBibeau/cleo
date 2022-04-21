@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "rootDir": "./src",
+    "outDir": "./dist",
+    "target": "ES2020",
+    "module": "ESNext",
+    "moduleResolution": "Node",
+
+    "jsx": "react",
+    "jsxFactory": "h",
+    "jsxFragmentFactory": "Fragment",
+    "sourceMap": true,
+
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "skipDefaultLibCheck": false,
+    "forceConsistentCasingInFileNames": true
+  },
+  "watchOptions": {
+    "excludeDirectories": ["**/node_modules", "dist"]
+  },
+  "include": ["./@types", "./src/**/*.ts", "./src/**/*.tsx"],
+  "exclude": ["./node_modules", "./dist"]
+}
