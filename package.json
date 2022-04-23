@@ -4,8 +4,11 @@
   "main": "./dist/index.js",
   "scripts": {
     "start": "node --enable-source-maps ./dist/index.js",
-    "dev": "concurrently \"tsc --watch\" \"NODE_ENV=development nodemon --watch dist --enable-source-maps ./dist/index.js arg\"",
+    "dev": "concurrently \"tsc --watch\" \"NODE_ENV=development nodemon --watch ./dist --enable-source-maps ./dist/index.js arg\"",
     "build": "tsc"
+  },
+  "imports": {
+    "##/*": "./dist/*.js"
   },
   "type": "module",
   "keywords": [],
