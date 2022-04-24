@@ -5,7 +5,6 @@
     "target": "ES2020",
     "module": "ESNext",
     "moduleResolution": "Node",
-
     "jsx": "react",
     "jsxFactory": "h",
     "jsxFragmentFactory": "Fragment",
@@ -22,7 +21,7 @@
     "forceConsistentCasingInFileNames": true
   },
   "watchOptions": {
-    "excludeDirectories": ["**/node_modules", "dist"]
+    "excludeDirectories": ["**/node_modules", "./src/client", "./dist"]
   },
   "include": ["./@types", "./src/**/*.ts", "./src/**/*.tsx"],
   "exclude": ["./node_modules", "./dist"]

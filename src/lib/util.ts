@@ -1,3 +1,12 @@
+import { dirname } from 'path'
+import { fileURLToPath } from 'url'
+import { createRequire } from 'module'
+
+const rootDir = import.meta.url + '/..'
+
+export const __dirname = dirname(fileURLToPath(rootDir))
+export const require = createRequire(rootDir)
+
 /**
  * Performs a deep merge of objects and returns new object. Does not modify
  * objects (immutable) and merges arrays via concatenation.
