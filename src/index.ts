@@ -1,6 +1,4 @@
-import dotenv from 'dotenv'
-dotenv.config()
-
+import '##/config'
 import app from '##/app'
 
 try {

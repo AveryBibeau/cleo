@@ -1,5 +1,4 @@
-import dotenv from 'dotenv'
-dotenv.config()
+import '##/config'
 import { build } from 'esbuild'
 import { buildConfig } from '##/build'
 import app from '##/app'

@@ -1,3 +1,4 @@
+import '##/config'
 import { build, BuildOptions } from 'esbuild'
 import { sassPlugin } from 'esbuild-sass-plugin'
 import manifestPlugin from 'esbuild-plugin-manifest'

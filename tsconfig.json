@@ -21,7 +21,7 @@
     "forceConsistentCasingInFileNames": true
   },
   "watchOptions": {
-    "excludeDirectories": ["**/node_modules", "./src/client", "./dist"]
+    "excludeDirectories": ["**/node_modules", "./dist"]
   },
   "include": ["./@types", "./src/**/*.ts", "./src/**/*.tsx"],
   "exclude": ["./node_modules", "./dist"]
