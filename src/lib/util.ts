@@ -1,6 +1,14 @@
+import type {
+  RawReplyDefaultExpression,
+  RawRequestDefaultExpression,
+  RawServerDefault,
+  RouteShorthandOptionsWithHandler,
+} from 'fastify'
+
 import { dirname } from 'path'
 import { fileURLToPath } from 'url'
 import { createRequire } from 'module'
+import { RouteGenericInterface } from 'fastify/types/route'
 
 const rootDir = import.meta.url + '/..'
 
@@ -36,3 +44,11 @@ export function mergeDeep(...objects: Record<string, any>[]) {
 }
 
 export const isDev = process.env.NODE_ENV === 'development'
+
+export type RequestHandler<Request extends RouteGenericInterface = RouteGenericInterface> =
+  RouteShorthandOptionsWithHandler<
+    RawServerDefault,
+    RawRequestDefaultExpression<RawServerDefault>,
+    RawReplyDefaultExpression<RawServerDefault>,
+    Request
+  >

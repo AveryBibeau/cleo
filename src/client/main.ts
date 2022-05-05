@@ -1,4 +1,4 @@
-import { doSomething } from '##/client/util'
+import { doSomething } from './util'
 import '../styles/main.scss'
 
 document.addEventListener('DOMContentLoaded', function () {

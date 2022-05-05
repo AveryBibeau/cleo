@@ -9,6 +9,7 @@
     "jsxFactory": "h",
     "jsxFragmentFactory": "Fragment",
     "sourceMap": true,
+    "noEmit": true,
     "baseUrl": "./src",
     "paths": {
       "##/*": ["./*"]
