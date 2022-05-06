@@ -58,13 +58,13 @@ export function makeServer(getTemplate: (url: string) => string) {
    * in production)
    */
   app.addHook('onRequest', (req, reply, done) => {
-    if (isDev && req.raw.url?.includes('/public/')) return done()
+    if (isDev && (req.raw.url?.includes('/src/') || req.raw.url?.includes('vite'))) return done()
     reply.startTime = performance.now()
     req.log.info({ url: req.raw.url, method: req.method }, '[Request]')
     done()
   })
   app.addHook('onResponse', (req, reply, done) => {
-    if (isDev && req.raw.url?.includes('/public/')) return done()
+    if (isDev && (req.raw.url?.includes('/src/') || req.raw.url?.includes('vite'))) return done()
     req.log.info(
       {
         url: req.raw.url,

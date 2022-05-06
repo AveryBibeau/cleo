@@ -1,6 +1,7 @@
 import { h, FunctionComponent, Fragment } from 'preact'
 import { FastifyError } from 'fastify'
 import { isDev } from '##/lib/util'
+import { DefaultLayout } from '##/layouts/default'
 
 export const ErrorLayout: FunctionComponent<{ error: FastifyError }> = ({ error }) => (
   <Fragment>

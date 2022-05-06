@@ -9,6 +9,16 @@ export const routes: RouteOptions[] = [
     method: 'GET',
     resolver: SampleHandler,
   },
+  {
+    path: '/error',
+    name: 'error',
+    method: 'GET',
+    resolver: {
+      handler(request, reply) {
+        throw this.httpErrors.unauthorized('Sample unauthorized message')
+      }
+    },
+  },
 ]
 
 export const routerPlugin = async (app: FastifyInstance, options: RegisterOptions) => {
