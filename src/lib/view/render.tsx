@@ -1,40 +1,97 @@
 import render from 'preact-render-to-string'
-import { h, ComponentType } from 'preact'
+import { h, ComponentType, FunctionComponent, ComponentChildren, createContext } from 'preact'
 import { helmet, HeadProps } from '##/lib/view/helmet'
-import { mergeDeep, isDev } from '##/lib/util'
+import { isDev } from '##/lib/util'
 import { defaultHead, devHead } from '##/lib/defaults'
-import { DefaultLayout } from '##/layouts/default'
+import { DefaultLayout, DefaultLayoutProps } from '##/layouts/default'
+import { FastifyReply, FastifyRequest } from 'fastify'
+import context from '##/lib/view/context'
+import { Stuff } from '##/lib/view/context'
+import { merge } from 'lodash-es'
 
-export type RenderRouteOptions<P = {}> = {
+export type RenderRouteOptions<P = {}, L = {}> = {
   component: ComponentType<P>
+  props?: P & { children?: ComponentChildren; addClass?: string }
+  layout?: ComponentType<L>
+  layoutProps?: L
   head?: HeadProps
-  layout?: ComponentType
-  props?: P
+  stuff?: Stuff
+  presession?: boolean
 }
 
-export async function renderRoute<P = {}>(options: RenderRouteOptions<P>) {
+export type RenderFragmentOptions<P = {}> = {
+  component: ComponentType<P>
+  props: P & { children?: ComponentChildren; addClass?: string }
+  stuff?: Stuff
+}
+
+export async function renderRoute<P, L = DefaultLayoutProps>(
+  options: RenderRouteOptions<P, L>,
+  request: FastifyRequest,
+  reply: FastifyReply
+) {
   let headProps = isDev ? await devHead() : defaultHead
-  if (options.head) headProps = mergeDeep(headProps, options.head)
+  if (options.head) headProps = merge(headProps, options.head)
 
   let propsToUse = options.props ?? ({} as P)
+  let layoutPropsToUse = options.layoutProps ?? ({} as L)
 
   let layout = options.layout ?? DefaultLayout
 
-  return renderPage<P>(layout, options.component, propsToUse, headProps)
+  context.session.set(request.session ?? {})
+  let url = new URL(process.env.ORIGIN + request.url)
+
+  let csrfToken = undefined
+
+  // Generate csrf token for user or for routes requiring a presession
+  if (request.session.user || options.presession) {
+    csrfToken = await reply.generateCsrf()
+    // await request.session.save()
+  }
+
+  context.page.set({
+    csrfToken,
+    url,
+    params: (request.params ?? {}) as Record<string, any>,
+  })
+  context.stuff.set(options.stuff ?? {})
+
+  return renderPage<P, L>(layout, options.component, propsToUse, layoutPropsToUse, headProps)
 }
 
-function renderPage<P>(layout: ComponentType, page: ComponentType<P>, props: P, head?: HeadProps) {
+export function renderComponent<P>(options: RenderFragmentOptions<P>, request: FastifyRequest) {
+  context.session.set(request.session ?? {})
+  let url = new URL(process.env.ORIGIN + request.url)
+  context.page.set({
+    url,
+    params: (request.params ?? {}) as Record<string, any>,
+  })
+  context.stuff.set(options.stuff ?? {})
+
+  const Component = options.component
+  const markup = render(<Component {...options.props}></Component>)
+
+  return markup
+}
+
+function renderPage<P, L>(
+  layout: ComponentType<L> | FunctionComponent<DefaultLayoutProps>,
+  page: ComponentType<P>,
+  props: P,
+  layoutProps: L,
+  head?: HeadProps
+) {
   const Layout = layout
   const Page = page
   const markup = render(
-    <Layout>
+    <Layout {...layoutProps}>
       <Page {...props}></Page>
     </Layout>
   )
   const headTags = head && render(helmet(head))
 
-  const html = `<!doctype html>
-<html>
+  const htmlTemplate = `<!doctype html>
+<html lang="en">
   <head>
     ${headTags}
   </head>
@@ -43,5 +100,5 @@ function renderPage<P>(layout: ComponentType, page: ComponentType<P>, props: P, 
   </body>
 </html>`
 
-  return html
+  return htmlTemplate
 }

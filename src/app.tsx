@@ -1,19 +1,35 @@
 import Fastify, { FastifyReply } from 'fastify'
-import FastifySensible from 'fastify-sensible'
-import FastifyStatic from 'fastify-static'
+import FastifyStatic from '@fastify/static'
+import FastifySensible from '@fastify/sensible'
+import FastifyCookie from '@fastify/cookie'
+import FastifySession from '@fastify/session'
+import FastifyAuth from '@fastify/auth'
+import FastifyCors from '@fastify/cors'
+import FastifyHelmet from '@fastify/helmet'
+import FastifyFormBody from '@fastify/formbody'
+import FastifyCrfs from '@fastify/csrf-protection'
+import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox'
 
-import { h, FunctionComponent } from 'preact'
+import { verifyUserSession } from '##/lib/authorization'
 
-import { renderRoute } from '##/lib/view/render'
+import { renderRoute, renderComponent, RenderRouteOptions, RenderFragmentOptions } from '##/lib/view/render'
 import { ErrorLayout } from '##/layouts/error'
 
 import { __dirname, isDev } from '##/lib/util'
 import { v4 as uuid } from 'uuid'
-import { helmet } from '##/lib/view/helmet'
+import type { FastifyAuthFunction } from '@fastify/auth'
+import { routerPlugin } from '##/router'
+import { Session as SessionType } from '##/lib/view/context'
 
 declare module 'fastify' {
+  export interface Session extends SessionType {}
+  export interface FastifyInstance {
+    verifyUserSession: FastifyAuthFunction
+  }
   interface FastifyReply {
     html: (content: string) => FastifyReply
+    render: <P, L>(options: RenderRouteOptions<P, L>) => FastifyReply
+    renderFragment: <P>(options: RenderFragmentOptions<P>) => FastifyReply
     startTime: number
   }
   interface FastifyLoggerOptions {
@@ -30,6 +46,13 @@ declare module 'fastify' {
 const app = Fastify({
   maxParamLength: 1800,
   disableRequestLogging: true,
+  ignoreTrailingSlash: true,
+  ajv: {
+    customOptions: {
+      strict: 'log',
+      keywords: ['kind', 'modifier'],
+    },
+  },
   genReqId() {
     return uuid()
   },
@@ -39,15 +62,18 @@ const app = Fastify({
       remove: false,
       censor: '[redacted]',
     },
-    prettyPrint:
+    transport:
       process.env.NODE_ENV === 'development'
         ? {
-            translateTime: 'HH:MM:ss Z',
-            ignore: 'pid,hostname',
+            target: 'pino-pretty',
+            options: {
+              translateTime: 'HH:MM:ss Z',
+              ignore: 'pid,hostname',
+            },
           }
-        : false,
+        : undefined,
   },
-})
+}).withTypeProvider<TypeBoxTypeProvider>()
 
 /**
  * Add custom logging to filter logs for static resources in dev (/public/ shouldn't be served the app
@@ -72,22 +98,65 @@ app.addHook('onResponse', (req, reply, done) => {
   done()
 })
 
+if (process.env.NODE_ENV === 'production') app.register(FastifyHelmet)
+
 app.register(FastifyStatic, {
   root: __dirname + '/public/',
   prefix: '/public/',
+  cacheControl: true,
+  maxAge: '365d',
 })
-app.register(FastifySensible, { errorHandler: false })
+app.register(FastifySensible)
+app.register(FastifyCookie)
 
-/**
- * Adds shortcut .html to FastifyReply for sending HTML content
- */
+app.register(FastifySession, {
+  secret: process.env.SESSION_SECRET,
+  cookieName: 'session',
+  saveUninitialized: false,
+  cookie: {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 90), // 90d
+    path: '/',
+    sameSite: 'lax',
+  },
+})
+app.register(FastifyCrfs, {
+  sessionPlugin: '@fastify/session',
+})
+
+app.register(FastifyAuth)
+
+app.register(FastifyCors, {
+  credentials: true,
+  methods: 'GET,HEAD,OPTIONS,PUT,PATCH,POST,DELETE',
+  origin: process.env.ORIGIN,
+  allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'X-Access-Token'],
+})
+app.register(FastifyFormBody)
+
+// TODO: Track https://github.com/fastify/fastify/issues/4081
+// FastifyInstance defined in FastifyAuthFunction does not inherit the TypeBoxTypeProvider
+app.decorate('verifyUserSession', verifyUserSession as any)
+
 app.decorateReply('html', function (this: FastifyReply, content: string) {
-  this.type('text/html; charset=utf-8').send(content)
+  return this.type('text/html; charset=utf-8').send(content)
 })
 
-/**
- * Custom error handler for rendering ##/layouts/error.tsx
- */
+app.decorateReply('render', async function <P, L>(this: FastifyReply, options: RenderRouteOptions<P, L>) {
+  let result = await renderRoute<P, L>(options, this.request, this)
+  return this.type('text/html; charset=utf-8').send(result)
+})
+
+app.decorateReply('renderFragment', async function <P>(this: FastifyReply, options: RenderFragmentOptions<P>) {
+  let result = await renderComponent<P>(options, this.request)
+  return this.type('text/html; charset=utf-8').header('s-fragment', true).send(result)
+})
+
+// Register all routes
+app.register(routerPlugin as any)
+
+// Custom error handler for rendering ##/layouts/error.tsx
 app.setErrorHandler(async function (error, request, reply) {
   // Log error
   this.log.error(error)
@@ -95,28 +164,22 @@ app.setErrorHandler(async function (error, request, reply) {
    * Try sending error response, fallback catch for errors thrown in renderRoute
    */
   try {
-    let errorHead = { title: 'Error' }
-    let result = await renderRoute({
+    let errorHead = { title: 'Seekwent - Error' }
+
+    await reply.status(error.statusCode ?? 500).render({
       component: ErrorLayout,
       head: errorHead,
       props: { error },
     })
-    reply.status(error.statusCode ?? 500).html(result)
   } catch (e) {
-    reply.status(500).send('There was an error processing your request. Please try again later.')
+    return reply.status(500).send('There was an error processing your request. Please try again later.')
   }
 })
 
-app.get('/', async function (request, reply) {
-  const Page: FunctionComponent<{ message: string }> = ({ message }) => <p>Component with a prop: {message}</p>
-
-  let result = await renderRoute({ component: Page, props: { message: 'lorem ipsum' } })
-
-  reply.html(result)
-})
-
 app.get('/healthz', function (req, res) {
-  res.status(200).send()
+  return res.status(200).send()
 })
+
+export type AppInstance = typeof app
 
 export default app

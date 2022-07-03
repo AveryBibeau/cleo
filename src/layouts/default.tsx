@@ -1,7 +1,11 @@
 import { h, Fragment, FunctionComponent } from 'preact'
 import { Header } from '##/components/Header'
 
-export const DefaultLayout: FunctionComponent = ({ children }) => (
+export interface DefaultLayoutProps {
+  userSavedThread?: boolean
+}
+
+export const DefaultLayout: FunctionComponent<DefaultLayoutProps> = ({ children }) => (
   <Fragment>
     <Header></Header>
     {children}
