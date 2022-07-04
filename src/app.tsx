@@ -43,6 +43,8 @@ declare module 'fastify' {
   }
 }
 
+console.log('origin:', process.env.ORIGIN)
+
 const app = Fastify({
   maxParamLength: 1800,
   disableRequestLogging: true,

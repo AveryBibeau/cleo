@@ -6,7 +6,9 @@
     "start": "NODE_ENV=production node --enable-source-maps ./dist/index.js",
     "dev": "nodemon --watch src --ignore dist/ --ext js,ts,jsx,tsx,css,scss,json --exec 'NODE_ENV=development node ./src/build.js && NODE_ENV=development node --enable-source-maps --inspect ./dist/index.js'",
     "build": "NODE_ENV=production node ./src/build.js",
-    "check": "tsc --noEmit"
+    "check": "tsc --noEmit",
+    "docker:build": "docker build -t jsx-ssr .",
+    "docker:run": "docker run -p 3000:3000 --env-file .env.container jsx-ssr"
   },
   "imports": {
     "##/*": "./dist/*.js"
@@ -16,6 +18,13 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@types/glob": "^7.2.0",
+    "@types/lodash-es": "^4.17.6",
+    "@types/node": "^17.0.25",
+    "@types/postcss-import": "^14.0.0",
+    "@types/rimraf": "^3.0.2",
+    "@types/shelljs": "^0.8.11",
+    "@types/uuid": "^8.3.4",
     "@fastify/auth": "^3.0.2",
     "@fastify/cookie": "^7.0.0",
     "@fastify/cors": "^8.0.0",
@@ -27,39 +36,30 @@
     "@fastify/static": "^6.4.0",
     "@fastify/type-provider-typebox": "^2.0.1",
     "@sinclair/typebox": "^0.24.7",
+    "autoprefixer": "^10.4.7",
+    "chalk": "^5.0.1",
+    "cssnano": "^5.1.12",
+    "esbuild": "^0.14.38",
     "dotenv": "^16.0.0",
+    "esbuild-plugin-manifest": "^0.5.0",
+    "esbuild-sass-plugin": "^2.2.6",
+    "esbuild-style-plugin": "^1.6.0",
     "fastify": "^4.2.0",
     "glob": "^8.0.3",
     "lodash-es": "^4.17.21",
     "path-to-regexp": "^6.2.1",
+    "postcss": "^8.4.14",
     "preact": "^10.7.1",
     "preact-render-to-string": "^5.1.21",
     "rimraf": "^3.0.2",
-    "uuid": "^8.3.2"
-  },
-  "devDependencies": {
-    "@types/glob": "^7.2.0",
-    "@types/lodash-es": "^4.17.6",
-    "@types/node": "^17.0.25",
-    "@types/postcss-import": "^14.0.0",
-    "@types/rimraf": "^3.0.2",
-    "@types/shelljs": "^0.8.11",
-    "@types/uuid": "^8.3.4",
-    "autoprefixer": "^10.4.7",
-    "chalk": "^5.0.1",
-    "concurrently": "^7.1.0",
-    "cssnano": "^5.1.12",
-    "esbuild": "^0.14.38",
-    "esbuild-plugin-manifest": "^0.5.0",
-    "esbuild-sass-plugin": "^2.2.6",
-    "esbuild-style-plugin": "^1.6.0",
-    "nodemon": "^2.0.18",
-    "pino-pretty": "^7.6.1",
-    "postcss": "^8.4.14",
     "sass": "^1.53.0",
     "shelljs": "^0.8.5",
     "tailwindcss": "^3.1.4",
-    "tsc-watch": "^5.0.3",
-    "typescript": "^4.7.4"
+    "typescript": "^4.7.4",
+    "uuid": "^8.3.2"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.18",
+    "pino-pretty": "^7.6.1"
   }
 }
