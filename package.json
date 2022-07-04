@@ -3,12 +3,10 @@
   "version": "0.0.1",
   "main": "./dist/index.js",
   "scripts": {
-    "start": "NODE_ENV=production && node --enable-source-maps ./dist/index.js",
-    "dev": "pnpm clean && pnpm copy-files && pnpm copy-env && NODE_ENV=development tsc-watch -p ./tsconfig-dev.json --onSuccess \"node --enable-source-maps --inspect ./dist/dev.js\"",
-    "build": "pnpm clean && pnpm copy-files && NODE_ENV=production && tsc -p ./tsconfig-prod.json && node --enable-source-maps ./dist/build.js",
-    "clean": "rm -rf ./dist",
-    "copy-files": "mkdir -p ./dist/public && cp -R ./src/public/. ./dist/public/.",
-    "copy-env": "cp ./.env ./dist/"
+    "start": "NODE_ENV=production node --enable-source-maps ./dist/index.js",
+    "dev": "nodemon --watch src --ignore dist/ --ext js,ts,jsx,tsx,css,scss,json --exec 'NODE_ENV=development node ./src/build.js && NODE_ENV=development node --enable-source-maps --inspect ./dist/index.js'",
+    "build": "NODE_ENV=production node ./src/build.js",
+    "check": "tsc --noEmit"
   },
   "imports": {
     "##/*": "./dist/*.js"
@@ -31,16 +29,21 @@
     "@sinclair/typebox": "^0.24.7",
     "dotenv": "^16.0.0",
     "fastify": "^4.2.0",
+    "glob": "^8.0.3",
     "lodash-es": "^4.17.21",
     "path-to-regexp": "^6.2.1",
     "preact": "^10.7.1",
     "preact-render-to-string": "^5.1.21",
+    "rimraf": "^3.0.2",
     "uuid": "^8.3.2"
   },
   "devDependencies": {
+    "@types/glob": "^7.2.0",
     "@types/lodash-es": "^4.17.6",
     "@types/node": "^17.0.25",
     "@types/postcss-import": "^14.0.0",
+    "@types/rimraf": "^3.0.2",
+    "@types/shelljs": "^0.8.11",
     "@types/uuid": "^8.3.4",
     "autoprefixer": "^10.4.7",
     "chalk": "^5.0.1",
@@ -50,9 +53,11 @@
     "esbuild-plugin-manifest": "^0.5.0",
     "esbuild-sass-plugin": "^2.2.6",
     "esbuild-style-plugin": "^1.6.0",
+    "nodemon": "^2.0.18",
     "pino-pretty": "^7.6.1",
     "postcss": "^8.4.14",
     "sass": "^1.53.0",
+    "shelljs": "^0.8.5",
     "tailwindcss": "^3.1.4",
     "tsc-watch": "^5.0.3",
     "typescript": "^4.7.4"

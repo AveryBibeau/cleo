@@ -12,7 +12,6 @@ export const HomeGet = (app: AppInstance) =>
     },
     async handler(request, reply) {
       let { foo } = request.query // foo: string | undefined
-
       return await reply.render({
         component: Home,
         props: {

@@ -1,5 +1,5 @@
 import { doSomething } from '##/client/util'
-import '../styles/main.scss'
+import './styles/main.scss'
 
 document.addEventListener('DOMContentLoaded', function () {
   let foo: string = 'bar'
