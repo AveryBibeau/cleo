@@ -1,8 +1,0 @@
-{
-  "extends": "./tsconfig",
-  "watchOptions": {
-    "excludeDirectories": ["**/node_modules", "./dist", "./src/client/**/*.ts"]
-  },
-  "include": ["./@types", "./src/**/*.ts", "./src/**/*.tsx"],
-  "exclude": ["./node_modules", "./dist", "./src/client/**/*.ts"]
-}

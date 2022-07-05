@@ -2,7 +2,7 @@
 
 SSR with Fastify using Preact's `preact-render-to-string`
 
-TypeScript + ESM modules
+TypeScript + ESM
 
 ## Dev
 1. `pnpm install`
