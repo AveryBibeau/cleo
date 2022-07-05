@@ -4,10 +4,10 @@
   "main": "./dist/index.js",
   "scripts": {
     "start": "NODE_ENV=production node --enable-source-maps ./server.js",
-    "dev": "nodemon -w src/app.tsx -x 'NODE_ENV=development node --enable-source-maps ./server.js'",
+    "dev": "NODE_ENV=development node --enable-source-maps ./server.js",
     "build": "pnpm build:client && pnpm build:server",
     "build:client": "VITE_BUILD=client vite build --outDir dist/client",
-    "build:server": "VITE_BUILD=ssr vite build --outDir dist/server --ssr src/app.tsx"
+    "build:server": "VITE_BUILD=ssr vite build --outDir dist/server --ssr src/app.ts"
   },
   "keywords": [],
   "author": "",

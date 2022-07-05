@@ -10,31 +10,47 @@ async function main() {
   const vite = await createViteServer({
     server: { middlewareMode: 'ssr' },
   })
-  let template
-  if (!isDev) template = fs.readFileSync(path.resolve(__dirname, 'dist/client/index.html'), 'utf-8')
-
-  async function getTemplate(url) {
-    if (isDev) {
-      let templateHtml = fs.readFileSync(path.resolve(__dirname, 'index.html'), 'utf-8')
-      template = await vite.transformIndexHtml(url, templateHtml)
-    }
-    return template
-  }
 
   let app
-  if (process.env.NODE_ENV === 'development') app = (await vite.ssrLoadModule('./src/app.tsx')).makeServer(getTemplate)
-  else app = require('./dist/server/app.js').makeServer(getTemplate)
+  if (isDev) app = (await vite.ssrLoadModule('./src/app.ts')).default.app
+  else app = require('./dist/server/app.js').default.app
 
-  if (process.env.NODE_ENV === 'development') {
+  if (isDev) {
     await app.register(middie)
     app.use(vite.middlewares)
+    app.decorateReply('render', null)
   }
 
-  if (!isDev)
+  if (!isDev) {
     app.register(FastifyStatic, {
       root: path.join(__dirname, 'dist/client'),
-      index: false
+      index: false,
     })
+
+    let prodTemplate = fs.readFileSync(path.resolve(__dirname, 'dist/client/index.html'), 'utf-8')
+    let renderRoute = require('./dist/server/app.js').default.renderRoute
+    app.decorateReply('render', async function (options) {
+      let result = await renderRoute(options, this.request, prodTemplate)
+      this.html(result)
+    })
+  }
+
+  app.addHook('onRequest', async (req, reply) => {
+    let { url } = req.raw
+
+    if (isDev) {
+      let templateHtml = fs.readFileSync(path.resolve(__dirname, 'index.html'), 'utf-8')
+      let template = await vite.transformIndexHtml(url, templateHtml)
+
+      let { renderRoute } = await vite.ssrLoadModule('./src/lib/view/render.tsx')
+
+      reply.render = async function (options) {
+        let result = await renderRoute(options, req, template)
+        this.html(result)
+      }
+    }
+    return
+  })
 
   await app.listen(3000, () => {
     app.log.info('Server listening on port 3000')
