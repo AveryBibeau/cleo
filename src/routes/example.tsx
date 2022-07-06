@@ -5,6 +5,7 @@ const MessageComponent: FunctionComponent<{ message: string }> = ({ message }) =
 
 export const SampleHandler: RequestHandler = {
   async handler(request, reply) {
+    let a: string = 'asdf'
     return reply.render({
       component: MessageComponent,
       props: {

@@ -1,34 +1,44 @@
-const { createServer: createViteServer } = require('vite')
-const fs = require('fs')
-const path = require('path')
-const middie = require('middie')
-const FastifyStatic = require('@fastify/static')
+import fs from 'fs'
+import path from 'path'
+import { fileURLToPath } from 'url'
+import FastifyStatic from '@fastify/static'
+import middie from 'middie'
 
-const isDev = process.env.NODE_ENV === 'development'
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
-async function main() {
-  const vite = await createViteServer({
-    server: { middlewareMode: 'ssr' },
-  })
-
+export async function createServer(root = process.cwd(), isProd = process.env.NODE_ENV === 'production', hmrPort) {
+  const resolve = (p) => path.resolve(__dirname, p)
   let app
-  if (isDev) app = (await vite.ssrLoadModule('./src/app.ts')).default.app
-  else app = require('./dist/server/app.js').default.app
 
-  if (isDev) {
+  /**
+   * @type {import('vite').ViteDevServer}
+   */
+  let vite
+  if (!isProd) {
+    vite = await (
+      await import('vite')
+    ).createServer({
+      root,
+      server: {
+        middlewareMode: 'ssr',
+        hmr: {
+          port: hmrPort,
+        },
+      },
+    })
+    app = (await vite.ssrLoadModule('./src/app.ts')).createApp(vite)
     await app.register(middie)
     app.use(vite.middlewares)
     app.decorateReply('render', null)
-  }
-
-  if (!isDev) {
+  } else {
+    app = (await import('./dist/server/app.js')).createApp(vite)
     app.register(FastifyStatic, {
       root: path.join(__dirname, 'dist/client'),
       index: false,
     })
 
-    let prodTemplate = fs.readFileSync(path.resolve(__dirname, 'dist/client/index.html'), 'utf-8')
-    let renderRoute = require('./dist/server/app.js').default.renderRoute
+    let prodTemplate = fs.readFileSync(resolve('dist/client/index.html'), 'utf-8')
+    let renderRoute = (await import('./dist/server/app.js')).renderRouteDefault
     app.decorateReply('render', async function (options) {
       let result = await renderRoute(options, this.request, prodTemplate)
       this.html(result)
@@ -38,8 +48,8 @@ async function main() {
   app.addHook('onRequest', async (req, reply) => {
     let { url } = req.raw
 
-    if (isDev) {
-      let templateHtml = fs.readFileSync(path.resolve(__dirname, 'index.html'), 'utf-8')
+    if (!isProd) {
+      let templateHtml = fs.readFileSync(path.resolve('index.html'), 'utf-8')
       let template = await vite.transformIndexHtml(url, templateHtml)
 
       let { renderRoute } = await vite.ssrLoadModule('./src/lib/view/render.tsx')
@@ -52,9 +62,9 @@ async function main() {
     return
   })
 
-  await app.listen(3000, () => {
-    app.log.info('Server listening on port 3000')
-  })
+  return { app, vite }
 }
 
-main()
+createServer().then(({ app }) => {
+  app.listen(3000)
+})

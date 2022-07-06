@@ -12,6 +12,11 @@ export default defineConfig(({ mode, command }) => {
       target: 'es2020',
       polyfillModulePreload: false,
       sourcemap: isServer,
+      rollupOptions: {
+        output: {
+          format: 'esm',
+        },
+      },
     },
     server: {
       watch: { usePolling: true },
