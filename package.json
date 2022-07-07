@@ -4,7 +4,7 @@
   "main": "./dist/index.js",
   "scripts": {
     "start": "NODE_ENV=production node --enable-source-maps ./server.js",
-    "dev": "nodemon --watch ./src/app.ts --watch ./src/routes --ignore ./dist/ --ext js,ts,jsx,tsx,css,scss,json --exec 'NODE_ENV=development node --enable-source-maps --inspect ./server.js'",
+    "dev": "nodemon --watch ./src/app.ts --watch ./src/routes --watch ./src/router.ts --ignore ./dist/ --ext js,ts,jsx,tsx,css,scss,json --exec 'NODE_ENV=development node --enable-source-maps --inspect ./server.js'",
     "build": "pnpm build:client && pnpm build:server",
     "build:client": "VITE_BUILD=client vite build --outDir dist/client",
     "build:server": "VITE_BUILD=ssr vite build --outDir dist/server --ssr src/app.ts"

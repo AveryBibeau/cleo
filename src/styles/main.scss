@@ -1,4 +1,6 @@
-@tailwind base;
+/* @tailwind base; */
+@import './reset.scss';
+
 @tailwind components;
 @tailwind utilities;
 @import '##/styles/test.scss';

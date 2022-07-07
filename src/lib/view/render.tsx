@@ -21,7 +21,7 @@ export type RenderRouteOptions<P = {}, L = {}> = {
 
 export type RenderFragmentOptions<P = {}> = {
   component: ComponentType<P>
-  props: P & { children?: ComponentChildren; addClass?: string }
+  props?: P & { children?: ComponentChildren; addClass?: string }
   stuff?: Stuff
 }
 
@@ -69,7 +69,7 @@ export function renderComponent<P>(options: RenderFragmentOptions<P>, request: F
   context.stuff.set(options.stuff ?? {})
 
   const Component = options.component
-  const markup = render(<Component {...options.props}></Component>)
+  const markup = render(<Component {...(options.props ?? ({} as P))}></Component>)
 
   return markup
 }

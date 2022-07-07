@@ -138,14 +138,9 @@ export function createApp(vite: ViteDevServer) {
     return this.type('text/html; charset=utf-8').send(content)
   })
 
-  // app.decorateReply('render', async function <P, L>(this: FastifyReply, options: RenderRouteOptions<P, L>) {
-  //   let result = await renderRoute<P, L>(options, this.request, this)
-  //   return this.type('text/html; charset=utf-8').send(result)
-  // })
-
   app.decorateReply('renderFragment', async function <P>(this: FastifyReply, options: RenderFragmentOptions<P>) {
     let result = await renderComponent<P>(options, this.request)
-    return this.type('text/html; charset=utf-8').header('s-fragment', true).send(result)
+    return this.html(result)
   })
 
   // Register all routes
