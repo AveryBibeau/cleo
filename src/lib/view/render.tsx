@@ -1,34 +1,38 @@
 import render from 'preact-render-to-string'
-import { h, ComponentType, FunctionComponent } from 'preact'
+import { h, ComponentType, FunctionComponent, ComponentChildren, createContext } from 'preact'
 import { helmet, HeadProps } from '##/lib/view/helmet'
-import { mergeDeep, isDev } from '##/lib/util'
+import { isDev } from '##/lib/util'
 import { defaultHead } from '##/lib/defaults'
 import { DefaultLayout, DefaultLayoutProps } from '##/layouts/default'
-import { FastifyRequest } from 'fastify'
-import context, { Stuff } from '##/lib/context'
+import { FastifyReply, FastifyRequest } from 'fastify'
+import context from '##/lib/view/context'
+import { Stuff } from '##/lib/view/context'
+import { merge } from 'lodash-es'
 
 export type RenderRouteOptions<P = {}, L = {}> = {
   component: ComponentType<P>
-  props?: P
+  props?: P & { children?: ComponentChildren; addClass?: string }
   layout?: ComponentType<L>
   layoutProps?: L
   head?: HeadProps
   stuff?: Stuff
+  presession?: boolean
 }
 
 export type RenderFragmentOptions<P = {}> = {
   component: ComponentType<P>
-  props: P
+  props: P & { children?: ComponentChildren; addClass?: string }
   stuff?: Stuff
 }
 
 export async function renderRoute<P, L = DefaultLayoutProps>(
   options: RenderRouteOptions<P, L>,
   request: FastifyRequest,
+  reply: FastifyReply,
   template: string
 ) {
   let headProps = defaultHead
-  if (options.head) headProps = mergeDeep(headProps, options.head)
+  if (options.head) headProps = merge(headProps, options.head)
 
   let propsToUse = options.props ?? ({} as P)
   let layoutPropsToUse = options.layoutProps ?? ({} as L)
@@ -36,8 +40,17 @@ export async function renderRoute<P, L = DefaultLayoutProps>(
   let layout = options.layout ?? DefaultLayout
 
   context.session.set(request.session ?? {})
-  let url = new URL(request.headers.host + request.url)
+  let url = new URL(process.env.ORIGIN + request.url)
+
+  let csrfToken = undefined
+
+  // Generate csrf token for user or for routes requiring a presession
+  if (request.session.user || options.presession) {
+    csrfToken = await reply.generateCsrf()
+  }
+
   context.page.set({
+    csrfToken,
     url,
     params: (request.params ?? {}) as Record<string, any>,
   })
@@ -48,7 +61,7 @@ export async function renderRoute<P, L = DefaultLayoutProps>(
 
 export function renderComponent<P>(options: RenderFragmentOptions<P>, request: FastifyRequest) {
   context.session.set(request.session ?? {})
-  let url = new URL(request.headers.host + request.url)
+  let url = new URL(process.env.ORIGIN + request.url)
   context.page.set({
     url,
     params: (request.params ?? {}) as Record<string, any>,

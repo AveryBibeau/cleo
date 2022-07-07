@@ -1,39 +1,29 @@
-import { FastifyInstance, RegisterOptions } from 'fastify'
-import { RouteOptions } from '##/lib/routeUtils'
-import { SampleHandler } from '##/routes/example'
+import { RegisterOptions } from 'fastify'
+import { RouteOptions, extendRoutes } from '##/lib/routeUtils'
+import { HomeGet } from '##/routes/example'
+import { AppInstance } from '##/app'
 
-export const routes: RouteOptions[] = [
+export const routes = [
   {
+    name: 'Home',
     path: '/',
-    name: 'home',
     method: 'GET',
-    resolver: SampleHandler,
+    resolver: HomeGet,
   },
-  {
-    path: '/error',
-    name: 'error',
-    method: 'GET',
-    resolver: {
-      handler(request, reply) {
-        throw this.httpErrors.unauthorized('Sample unauthorized message')
-      }
-    },
-  },
-]
+] as const
 
-export const routerPlugin = async (app: FastifyInstance, options: RegisterOptions) => {
-  routes.forEach((route) => {
-    if (typeof route.resolver === 'object')
-      app.route({
-        url: route.path,
-        method: route.method,
-        ...route.resolver,
-      })
-    else if (typeof route.resolver === 'function')
-      app.route({
-        url: route.path,
-        method: route.method,
-        ...route.resolver(app),
-      })
+let constRoutes = routes as unknown as readonly RouteOptions[]
+
+export type RouteName = typeof routes[number]['name']
+
+export const routerPlugin = async (app: AppInstance, options: RegisterOptions) => {
+  // Cache dynamic route matchers
+  extendRoutes(constRoutes)
+  constRoutes.forEach((route) => {
+    app.route({
+      url: route.path,
+      method: route.method,
+      ...route.resolver(app),
+    })
   })
 }

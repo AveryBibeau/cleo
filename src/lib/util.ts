@@ -1,54 +1,30 @@
-import type {
-  RawReplyDefaultExpression,
-  RawRequestDefaultExpression,
-  RawServerDefault,
-  RouteShorthandOptionsWithHandler,
-} from 'fastify'
+import { FastifySchema, RawReplyDefaultExpression, RouteShorthandOptionsWithHandler } from 'fastify'
+
+import { RawRequestDefaultExpression, RawServerDefault } from 'fastify'
+import { RouteGenericInterface } from 'fastify/types/route'
+import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox'
 
 import { dirname } from 'path'
 import { fileURLToPath } from 'url'
 import { createRequire } from 'module'
-import { RouteGenericInterface } from 'fastify/types/route'
+import { ResolveFastifyRequestType } from 'fastify/types/type-provider'
+import { AppInstance } from '##/app'
 
 const rootDir = import.meta.url + '/..'
 
 export const __dirname = dirname(fileURLToPath(rootDir))
 export const require = createRequire(rootDir)
 
-/**
- * Performs a deep merge of objects and returns new object. Does not modify
- * objects (immutable) and merges arrays via concatenation.
- *
- * @param {...object} objects - Objects to merge
- * @returns {object} New object with merged key/values
- */
-export function mergeDeep(...objects: Record<string, any>[]) {
-  const isObject = (obj: unknown) => obj && typeof obj === 'object'
-
-  return objects.reduce((prev, obj) => {
-    Object.keys(obj).forEach((key) => {
-      const pVal = prev[key]
-      const oVal = obj[key]
-
-      if (Array.isArray(pVal) && Array.isArray(oVal)) {
-        prev[key] = pVal.concat(...oVal)
-      } else if (isObject(pVal) && isObject(oVal)) {
-        prev[key] = mergeDeep(pVal, oVal)
-      } else {
-        prev[key] = oVal
-      }
-    })
-
-    return prev
-  }, {})
-}
-
 export const isDev = process.env.NODE_ENV === 'development'
 
-export type RequestHandler<Request extends RouteGenericInterface = RouteGenericInterface> =
-  RouteShorthandOptionsWithHandler<
-    RawServerDefault,
-    RawRequestDefaultExpression<RawServerDefault>,
-    RawReplyDefaultExpression<RawServerDefault>,
-    Request
-  >
+export type RequestHandler<S extends FastifySchema = {}> = RouteShorthandOptionsWithHandler<
+  RawServerDefault,
+  RawRequestDefaultExpression<RawServerDefault>,
+  RawReplyDefaultExpression<RawServerDefault>,
+  RouteGenericInterface,
+  unknown,
+  S,
+  TypeBoxTypeProvider,
+  ResolveFastifyRequestType<TypeBoxTypeProvider, S, RouteGenericInterface>
+>
+export const createRequestHandler = <S extends FastifySchema>(options: RequestHandler<S>) => options

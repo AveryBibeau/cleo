@@ -1,6 +1,4 @@
-import { RequestHandler } from '##/lib/util'
-import { routes } from '##/router'
-import { FastifyInstance } from 'fastify'
+import type { RouteName } from '##/router'
 
 import { pathToRegexp, compile, Key, PathFunction } from 'path-to-regexp'
 
@@ -8,16 +6,16 @@ export type RouteParamsRecord = Record<string, string | number>
 export type RouteQueryRecord = Record<string, string>
 
 export interface GetHrefConfig {
-  name: string
+  name: RouteName
   params?: RouteParamsRecord
   query?: RouteQueryRecord
 }
 
 export interface RouteOptions {
-  name: string
-  method: 'GET' | 'POST' | 'PUT' | 'DELETE'
-  path: string
-  resolver: RequestHandler<any> | ((app: FastifyInstance) => RequestHandler<any>)
+  readonly name: string
+  readonly method: 'GET' | 'POST' | 'PUT' | 'DELETE'
+  readonly path: string
+  readonly resolver: any
 }
 
 export function urlParamsToObject(params: URLSearchParams) {
@@ -29,22 +27,26 @@ export function urlParamsToObject(params: URLSearchParams) {
 }
 
 // Build cache of dynamic path regexes
-const extendedRoutes: (RouteOptions & {
+let extendedRoutes: (RouteOptions & {
   matcher?: RegExp
   keys?: Key[]
   compiler?: PathFunction<object>
-})[] = routes.map((route) => {
-  if (route.path.includes('/:')) {
-    let keys: Key[] = []
-    let matcher = pathToRegexp(route.path, keys)
-    return {
-      ...route,
-      matcher,
-      compiler: compile(route.path, { encode: encodeURIComponent }),
-      keys,
-    }
-  } else return route
-})
+})[] = []
+
+export function extendRoutes(routes: readonly RouteOptions[]) {
+  extendedRoutes = routes.map((route) => {
+    if (route.path.includes('/:')) {
+      let keys: Key[] = []
+      let matcher = pathToRegexp(route.path, keys)
+      return {
+        ...route,
+        matcher,
+        compiler: compile(route.path, { encode: encodeURIComponent }),
+        keys,
+      }
+    } else return route
+  })
+}
 
 export function getHref(config: GetHrefConfig): string {
   let href = ''
@@ -68,9 +70,7 @@ export function getHref(config: GetHrefConfig): string {
   }
 
   // Delete any undefined properties
-  Object.keys(mergedQuery).forEach(
-    (key) => mergedQuery[key] === undefined && delete mergedQuery[key]
-  )
+  Object.keys(mergedQuery).forEach((key) => mergedQuery[key] === undefined && delete mergedQuery[key])
 
   const currentQuery = new URLSearchParams(mergedQuery)
   const qs = currentQuery.toString()

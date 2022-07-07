@@ -1,3 +1,5 @@
+import dotenv from 'dotenv'
+dotenv.config()
 import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
@@ -40,7 +42,7 @@ export async function createServer(root = process.cwd(), isProd = process.env.NO
     let prodTemplate = fs.readFileSync(resolve('dist/client/index.html'), 'utf-8')
     let renderRoute = (await import('./dist/server/app.js')).renderRouteDefault
     app.decorateReply('render', async function (options) {
-      let result = await renderRoute(options, this.request, prodTemplate)
+      let result = await renderRoute(options, this.request, this, prodTemplate)
       this.html(result)
     })
   }
@@ -55,7 +57,7 @@ export async function createServer(root = process.cwd(), isProd = process.env.NO
       let { renderRoute } = await vite.ssrLoadModule('./src/lib/view/render.tsx')
 
       reply.render = async function (options) {
-        let result = await renderRoute(options, req, template)
+        let result = await renderRoute(options, req, reply, template)
         this.html(result)
       }
     }
