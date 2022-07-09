@@ -8,6 +8,10 @@ export default defineConfig(({ mode, command }) => {
   const isDev = mode === 'development'
   const isServer = process.env.VITE_BUILD === 'ssr'
   return {
+    esbuild: {
+      jsxFactory: 'h',
+      jsxFragment: 'Fragment',
+    },
     build: {
       target: 'es2020',
       polyfillModulePreload: false,
