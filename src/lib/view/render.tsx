@@ -1,7 +1,6 @@
 import render from 'preact-render-to-string'
 import { h, ComponentType, FunctionComponent, ComponentChildren, createContext } from 'preact'
 import { helmet, HeadProps } from '##/lib/view/helmet'
-import { isDev } from '##/lib/util'
 import { defaultHead } from '##/lib/defaults'
 import { DefaultLayout, DefaultLayoutProps } from '##/layouts/default'
 import { FastifyReply, FastifyRequest } from 'fastify'
@@ -9,15 +8,24 @@ import context from '##/lib/view/context'
 import { Stuff } from '##/lib/view/context'
 import { merge } from 'lodash-es'
 
-export type RenderRouteOptions<P = {}, L = {}> = {
+type SharedRenderRouteOptions<P = {}> = {
   component: ComponentType<P>
   props?: P & { children?: ComponentChildren; addClass?: string }
-  layout?: ComponentType<L>
-  layoutProps?: L
   head?: HeadProps
   stuff?: Stuff
   presession?: boolean
 }
+
+export type RenderRouteOptionsDefault<P = {}> = SharedRenderRouteOptions<P> & {
+  layout?: undefined
+  layoutProps?: DefaultLayoutProps
+}
+export type RenderRouteOptionsWithLayout<P = {}, L = {}> = SharedRenderRouteOptions<P> & {
+  layout: ComponentType<L>
+  layoutProps?: L
+}
+
+export type RenderRouteOptions<P = {}, L = {}> = RenderRouteOptionsDefault<P> | RenderRouteOptionsWithLayout<P, L>
 
 export type RenderFragmentOptions<P = {}> = {
   component: ComponentType<P>
@@ -25,19 +33,19 @@ export type RenderFragmentOptions<P = {}> = {
   stuff?: Stuff
 }
 
-export async function renderRoute<P, L = DefaultLayoutProps>(
+export async function renderRoute<P, L>(
   options: RenderRouteOptions<P, L>,
   request: FastifyRequest,
   reply: FastifyReply,
   template: string
 ) {
-  let headProps = defaultHead
+  let headProps = { ...defaultHead }
   if (options.head) headProps = merge(headProps, options.head)
 
   let propsToUse = options.props ?? ({} as P)
   let layoutPropsToUse = options.layoutProps ?? ({} as L)
 
-  let layout = options.layout ?? DefaultLayout
+  let layout = options.layout === undefined ? DefaultLayout : options.layout
 
   context.session.set(request.session ?? {})
   let url = new URL(process.env.ORIGIN + request.url)
@@ -78,14 +86,14 @@ function renderPage<P, L>(
   layout: ComponentType<L> | FunctionComponent<DefaultLayoutProps>,
   page: ComponentType<P>,
   props: P,
-  layoutProps: L,
+  layoutProps: L | DefaultLayoutProps,
   head: HeadProps,
   template: string
 ) {
   const Layout = layout
   const Page = page
   const markup = render(
-    <Layout {...layoutProps}>
+    <Layout {...(layoutProps as L)}>
       <Page {...props}></Page>
     </Layout>
   )

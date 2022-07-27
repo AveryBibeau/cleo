@@ -2,7 +2,7 @@ import { defineConfig } from 'vite'
 import path from 'path'
 import checker from 'vite-plugin-checker'
 
-const devPlugins = [checker({ typescript: true })]
+const devPlugins = []
 
 export default defineConfig(({ mode, command }) => {
   const isDev = mode === 'development'
@@ -30,6 +30,6 @@ export default defineConfig(({ mode, command }) => {
         '##': path.resolve(__dirname, './src'),
       },
     },
-    plugins: [...(isDev ? devPlugins : [])],
+    plugins: [...(isDev ? devPlugins : []), checker({ typescript: true })],
   }
 })

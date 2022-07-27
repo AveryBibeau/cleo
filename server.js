@@ -4,7 +4,7 @@ import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import FastifyStatic from '@fastify/static'
-import middie from 'middie'
+import middie from '@fastify/middie'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -21,8 +21,9 @@ export async function createServer(root = process.cwd(), isProd = process.env.NO
       await import('vite')
     ).createServer({
       root,
+      appType: 'custom',
       server: {
-        middlewareMode: 'ssr',
+        middlewareMode: true,
         hmr: {
           port: hmrPort,
         },
@@ -34,16 +35,25 @@ export async function createServer(root = process.cwd(), isProd = process.env.NO
     app.decorateReply('render', null)
   } else {
     app = (await import('./dist/server/app.js')).createApp(vite)
+    const PUBLIC_DIR = path.join(__dirname, 'dist/client')
     app.register(FastifyStatic, {
-      root: path.join(__dirname, 'dist/client'),
+      root: PUBLIC_DIR,
       index: false,
+      setHeaders: (res, pathName) => {
+        const relativePath = pathName.replace(PUBLIC_DIR, '')
+        if (relativePath.startsWith('/assets/') || relativePath.startsWith('/fonts/')) {
+          res.setHeader('Cache-Control', 'public, max-age=31536000, immutable')
+        } else {
+          res.setHeader('Cache-Control', 'public, max-age=3600')
+        }
+      },
     })
 
     let prodTemplate = fs.readFileSync(resolve('dist/client/index.html'), 'utf-8')
     let renderRoute = (await import('./dist/server/app.js')).renderRouteDefault
     app.decorateReply('render', async function (options) {
       let result = await renderRoute(options, this.request, this, prodTemplate)
-      this.html(result)
+      return this.html(result)
     })
   }
 
@@ -58,7 +68,7 @@ export async function createServer(root = process.cwd(), isProd = process.env.NO
 
       reply.render = async function (options) {
         let result = await renderRoute(options, req, reply, template)
-        this.html(result)
+        return this.html(result)
       }
     }
     return
@@ -68,5 +78,8 @@ export async function createServer(root = process.cwd(), isProd = process.env.NO
 }
 
 createServer().then(({ app }) => {
-  app.listen(3000)
+  app.listen({
+    port: 3000,
+    host: '0.0.0.0',
+  })
 })

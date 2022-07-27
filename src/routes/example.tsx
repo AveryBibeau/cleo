@@ -1,9 +1,7 @@
 import { AppInstance } from '##/app'
+import { MessageComponent } from '##/components/Message'
 import { createRequestHandler } from '##/lib/util'
 import { Type } from '@sinclair/typebox'
-import { FunctionComponent, h } from 'preact'
-
-const MessageComponent: FunctionComponent<{ message?: string }> = ({ message }) => <p>Lorem ipsum: {message}</p>
 
 export const HomeGet = (app: AppInstance) =>
   createRequestHandler({

@@ -13,7 +13,7 @@ import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox'
 import { verifyUserSession } from '##/lib/authorization'
 
 import { renderRoute, renderComponent, RenderRouteOptions, RenderFragmentOptions } from '##/lib/view/render'
-import { ErrorLayout } from '##/layouts/error'
+import ErrorLayout from '##/layouts/error'
 
 import { __dirname, isDev } from '##/lib/util'
 import { v4 as uuid } from 'uuid'

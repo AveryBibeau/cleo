@@ -1,11 +1,17 @@
 /* @tailwind base; */
-@import './reset.scss';
+@import './reset.css';
+@import '##/styles/test.css';
 
 @tailwind components;
 @tailwind utilities;
-@import '##/styles/test.scss';
 
 h1 {
   font-size: 2rem;
   color: green;
+}
+
+header {
+  a {
+    color: red;
+  }
 }
