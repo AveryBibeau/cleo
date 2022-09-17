@@ -8,6 +8,8 @@ import context from '##/lib/view/context'
 import { Stuff } from '##/lib/view/context'
 import { merge } from 'lodash-es'
 
+type IntrinsicAttributes = h.JSX.IntrinsicAttributes
+
 type SharedRenderRouteOptions<P = {}> = {
   component: ComponentType<P>
   props?: P & { children?: ComponentChildren; addClass?: string }
@@ -33,7 +35,7 @@ export type RenderFragmentOptions<P = {}> = {
   stuff?: Stuff
 }
 
-export async function renderRoute<P, L>(
+export async function renderRoute<P extends h.JSX.IntrinsicAttributes, L>(
   options: RenderRouteOptions<P, L>,
   request: FastifyRequest,
   reply: FastifyReply,
@@ -67,7 +69,10 @@ export async function renderRoute<P, L>(
   return renderPage<P, L>(layout, options.component, propsToUse, layoutPropsToUse, headProps, template)
 }
 
-export function renderComponent<P>(options: RenderFragmentOptions<P>, request: FastifyRequest) {
+export function renderComponent<P extends h.JSX.IntrinsicAttributes>(
+  options: RenderFragmentOptions<P>,
+  request: FastifyRequest
+) {
   context.session.set(request.session ?? {})
   let url = new URL(process.env.ORIGIN + request.url)
   context.page.set({
@@ -82,7 +87,7 @@ export function renderComponent<P>(options: RenderFragmentOptions<P>, request: F
   return markup
 }
 
-function renderPage<P, L>(
+function renderPage<P extends h.JSX.IntrinsicAttributes, L>(
   layout: ComponentType<L> | FunctionComponent<DefaultLayoutProps>,
   page: ComponentType<P>,
   props: P,

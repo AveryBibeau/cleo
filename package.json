@@ -4,7 +4,7 @@
   "main": "./dist/index.js",
   "scripts": {
     "start": "NODE_ENV=production node --enable-source-maps ./server.js",
-    "dev": "nodemon --watch ./server.js --watch ./src/app.ts --watch ./src/routes --watch ./src/router.ts --ignore ./dist/ --ext js,ts,jsx,tsx,css,scss,json --exec 'NODE_ENV=development node --enable-source-maps --inspect ./server.js'",
+    "dev": "nodemon --watch ./server.js --watch ./src/app.ts --watch ./src/router.ts --ignore ./dist/ --ext js,ts,jsx,tsx,css,scss,json --exec 'NODE_ENV=development node --enable-source-maps --inspect ./server.js'",
     "build": "pnpm build:client && pnpm build:server",
     "build:client": "VITE_BUILD=client vite build --outDir dist/client",
     "build:server": "VITE_BUILD=ssr vite build --outDir dist/server --ssr src/app.ts"
@@ -20,6 +20,7 @@
     "@fastify/csrf-protection": "^5.0.0",
     "@fastify/formbody": "^7.0.1",
     "@fastify/helmet": "^9.1.0",
+    "@fastify/middie": "^8.0.0",
     "@fastify/sensible": "^5.1.0",
     "@fastify/session": "^9.0.0",
     "@fastify/static": "^6.4.0",
