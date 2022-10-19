@@ -1,11 +1,11 @@
 import render from 'preact-render-to-string'
 import { h, ComponentType, FunctionComponent, ComponentChildren, createContext } from 'preact'
-import { helmet, HeadProps } from '##/lib/view/helmet'
-import { defaultHead } from '##/lib/defaults'
-import { DefaultLayout, DefaultLayoutProps } from '##/layouts/default'
+import { helmet, HeadProps } from './helmet'
+import { defaultHead } from '../defaults'
+import { DefaultLayout, DefaultLayoutProps } from '../../layouts/default'
 import { FastifyReply, FastifyRequest } from 'fastify'
-import context from '##/lib/view/context'
-import { Stuff } from '##/lib/view/context'
+import context from '../view/context'
+import { Stuff } from '../view/context'
 import { merge } from 'lodash-es'
 
 type IntrinsicAttributes = h.JSX.IntrinsicAttributes
@@ -49,18 +49,17 @@ export async function renderRoute<P extends h.JSX.IntrinsicAttributes, L>(
 
   let layout = options.layout === undefined ? DefaultLayout : options.layout
 
-  context.session.set(request.session ?? {})
-  let url = new URL(process.env.ORIGIN + request.url)
+  // context.session.set(request.session ?? {})
+  let url = new URL(request.protocol + '://' + request.hostname + request.url)
 
   let csrfToken = undefined
 
   // Generate csrf token for user or for routes requiring a presession
-  if (request.session.user || options.presession) {
-    csrfToken = await reply.generateCsrf()
-  }
+  // if (request.session.user || options.presession) {
+  //   csrfToken = await reply.generateCsrf()
+  // }
 
   context.page.set({
-    csrfToken,
     url,
     params: (request.params ?? {}) as Record<string, any>,
   })
@@ -73,8 +72,8 @@ export function renderComponent<P extends h.JSX.IntrinsicAttributes>(
   options: RenderFragmentOptions<P>,
   request: FastifyRequest
 ) {
-  context.session.set(request.session ?? {})
-  let url = new URL(process.env.ORIGIN + request.url)
+  // context.session.set(request.session ?? {})
+  let url = new URL(request.protocol + '://' + request.hostname + request.url)
   context.page.set({
     url,
     params: (request.params ?? {}) as Record<string, any>,

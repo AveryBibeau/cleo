@@ -4,23 +4,18 @@
  * synchronously rendered. Its properties are nulled when rendering is complete.
  */
 
- export interface Session {
-  user?: {
-    username: string
-  }
-}
+export interface Session {}
 
 export type PageData = {
-  csrfToken?: string
   url: URL
   params: Record<string, any>
 }
 
 export type Stuff = Record<string, any>
 
-let session: Nullable<Session>
-let page: Nullable<PageData>
-let stuff: Nullable<Stuff>
+let session: Session
+let page: PageData
+let stuff: Stuff
 
 export default {
   session: {

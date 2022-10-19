@@ -1,4 +1,4 @@
-import type { RouteName } from '##/router'
+// import type { RouteName } from '##/router'
 
 import { pathToRegexp, compile, Key, PathFunction } from 'path-to-regexp'
 
@@ -6,7 +6,7 @@ export type RouteParamsRecord = Record<string, string | number>
 export type RouteQueryRecord = Record<string, string>
 
 export interface GetHrefConfig {
-  name: RouteName
+  name: string
   params?: RouteParamsRecord
   query?: RouteQueryRecord
 }

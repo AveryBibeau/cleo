@@ -11,10 +11,7 @@
     "sourceMap": true,
     "noEmit": true,
     "baseUrl": "./src",
-    "paths": {
-      "##/*": ["./*"]
-    },
-
+    "checkJs": false,
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
@@ -24,6 +21,6 @@
   "watchOptions": {
     "excludeDirectories": ["**/node_modules", "./dist"]
   },
-  "include": ["./@types", "./src/**/*.ts", "./src/**/*.tsx"],
+  "include": ["types", "./src/@types", "./src/**/*.ts", "./src/**/*.js", "./src/**/*.tsx"],
   "exclude": ["./node_modules", "./dist"]
 }
