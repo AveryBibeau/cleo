@@ -1,74 +1,21 @@
-import Fastify, { FastifyInstance, FastifyReply } from 'fastify'
-
-import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox'
+import fastify, { FastifyInstance, FastifyReply } from 'fastify'
 
 import { renderRoute, renderComponent, RenderRouteOptions, RenderFragmentOptions } from './lib/view/render'
 // import { ErrorLayout } from '##/layouts/error'
 
 import { __dirname, isDev } from './lib/util'
-// import { routerPlugin } from '##/router'
-// import { Session as SessionType } from './lib/view/context'
 import { h } from 'preact'
-import middie from '@fastify/middie'
 
 declare module 'fastify' {
-  // export interface Session extends SessionType {}
   interface FastifyReply {
     html: (content: string) => FastifyReply
     render: <P, L>(options: RenderRouteOptions<P, L>) => FastifyReply
     renderFragment: <P>(options: RenderFragmentOptions<P>) => FastifyReply
     startTime: number
   }
-  // interface FastifyLoggerOptions {
-  //   redact?:
-  //     | string[]
-  //     | {
-  //         paths: string[]
-  //         remove: boolean
-  //         censor: string
-  //       }
-  // }
 }
 
 export async function createApp(app: FastifyInstance, opts: any) {
-  // console.log('registering', opts.middlewares)
-  // await app.register(middie)
-  // // app.use(opts.middlewares)
-  // console.log('done registering')
-  // console.log(app.printPlugins())
-  // console.log(app)
-
-  // const app = Fastify({
-  //   maxParamLength: 1800,
-  //   disableRequestLogging: true,
-  //   ignoreTrailingSlash: true,
-  //   ajv: {
-  //     customOptions: {
-  //       strict: 'log',
-  //       keywords: ['kind', 'modifier'],
-  //     },
-  //   },
-  //   genReqId() {
-  //     return uuid()
-  //   },
-  //   logger: {
-  //     redact: {
-  //       paths: ['headers.authorization'],
-  //       remove: false,
-  //       censor: '[redacted]',
-  //     },
-  //     transport: isDev
-  //       ? {
-  //           target: 'pino-pretty',
-  //           options: {
-  //             translateTime: 'HH:MM:ss Z',
-  //             ignore: 'pid,hostname',
-  //           },
-  //         }
-  //       : undefined,
-  //   },
-  // }).withTypeProvider<TypeBoxTypeProvider>()
-
   /**
    * Add custom logging to filter logs for static resources in dev (/public/ shouldn't be served the app
    * in production)
@@ -132,7 +79,7 @@ export async function createApp(app: FastifyInstance, opts: any) {
     return res.status(200).send()
   })
 
-  await opts.runAfterLoad(app)
+  if (opts?.runAfterLoad) await opts.runAfterLoad(app)
 }
 export const renderRouteDefault = renderRoute
 

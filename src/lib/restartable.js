@@ -1,5 +1,11 @@
-import Fastify from 'fastify'
+/**
+ * Adapted from https://github.com/fastify/restartable
+ * to include an async hook after app load in spinUpFastify
+ * @fastify/middie cannot load vite dev middleware when registered as
+ * a subsystem (the app with middlewares is passed to another app via register)
+ */
 
+import Fastify from 'fastify'
 import http from 'http'
 import https from 'https'
 import { once } from 'events'

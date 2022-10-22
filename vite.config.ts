@@ -1,13 +1,17 @@
 import { defineConfig } from 'vite'
 import path from 'path'
 import checker from 'vite-plugin-checker'
-
-const devPlugins = []
+import { fileURLToPath } from 'url'
 
 export default defineConfig(({ mode, command }) => {
   const isDev = mode === 'development'
   const isServer = process.env.VITE_BUILD === 'ssr'
+  const root = process.cwd()
+  const __dirname = path.dirname(fileURLToPath(import.meta.url))
+
   return {
+    root,
+    appType: 'custom',
     esbuild: {
       jsxFactory: 'h',
       jsxFragment: 'Fragment',
@@ -21,15 +25,20 @@ export default defineConfig(({ mode, command }) => {
           format: 'esm',
         },
       },
+      ssr: isServer ? path.resolve(__dirname, './dist/prod.js') : undefined,
+      outDir: isServer ? process.cwd() + '/dist/server' : process.cwd() + '/dist/client',
     },
     server: {
       watch: { usePolling: true },
+      middlewareMode: true,
     },
     resolve: {
       alias: {
-        '##': path.resolve(__dirname, './src'),
+        '##': path.resolve(root, './'),
+        '#app': path.resolve(root, './.cleo'),
       },
     },
-    plugins: [...(isDev ? devPlugins : []), checker({ typescript: true })],
+    plugins: [checker({ typescript: true })],
+    ssr: { target: 'node' },
   }
 })

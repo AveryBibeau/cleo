@@ -1,6 +1,6 @@
 export const routeMethods = ['delete', 'get', 'head', 'patch', 'post', 'put', 'options']
 
-export function parseFilePathToRoutePath(path, dir) {
+export function parseFilePathToRoutePath(path: string, dir: string): string {
   let filePath = path.replace(dir, '').replace('/routes', '')
 
   const squareBracketRegex = /\[(.*)\]/gu
@@ -28,4 +28,17 @@ export function parseFilePathToRoutePath(path, dir) {
   if (withoutIndex === '') return '/'
 
   return withoutIndex
+}
+
+export function parseRoutePathToName(path: string): string {
+  // Remove the first slash and param
+  if (path.startsWith('/')) path = path.slice(1)
+  if (path.startsWith(':')) path = path.slice(1)
+
+  if (path === '') return 'index'
+
+  path.replace('/:', '-')
+  path.replace('/', '-')
+
+  return path
 }
