@@ -8,8 +8,6 @@ import context from '../view/context'
 import { Stuff } from '../view/context'
 import { merge } from 'lodash-es'
 
-type IntrinsicAttributes = h.JSX.IntrinsicAttributes
-
 type SharedRenderRouteOptions<P = {}> = {
   component: ComponentType<P>
   props?: P & { children?: ComponentChildren; addClass?: string }

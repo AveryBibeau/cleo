@@ -3,7 +3,8 @@
   "version": "0.0.1",
   "main": "./dist/index.js",
   "scripts": {
-    "build": "tsc"
+    "build": "tsc",
+    "dev": "tsc --watch"
   },
   "bin": {
     "cleo": "./dist/cli.js"
@@ -21,9 +22,11 @@
     "globby": "^13.1.2",
     "kleur": "^4.1.5",
     "lodash-es": "^4.17.21",
+    "node-fetch": "^3.2.10",
     "path-to-regexp": "^6.2.1",
     "preact": "^10.11.0",
     "preact-render-to-string": "^5.2.4",
+    "rollup-plugin-analyzer": "^4.0.0",
     "sade": "^1.8.1",
     "typescript": "^4.8.3",
     "uuid": "^8.3.2",

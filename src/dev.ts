@@ -1,31 +1,53 @@
 import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
-import FastifyStatic from '@fastify/static'
-import Fastify, { FastifyInstance } from 'fastify'
+import { FastifyInstance } from 'fastify'
 import middie from '@fastify/middie'
-import checker from 'vite-plugin-checker'
 import Inspect from 'vite-plugin-inspect'
-import { isEqual } from 'lodash-es'
 // @ts-ignore
 import { start } from './lib/restartable.js'
 import { createServer } from 'vite'
+import { inspect } from 'util'
+
+import { includeCleo } from './lib/includes.js'
 
 // The library dir
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 import { globby } from 'globby'
 
-import { parseFilePathToRoutePath, routeMethods } from './lib/parseRoutes.js'
+import { createRouteIncludes, parseFilePathToRoutePath, parseRoutePathToName, routeMethods } from './lib/parseRoutes.js'
 
 import { fastifyOpts } from './shared.js'
+import { createRouterConfig } from './lib/routes.js'
 const root = process.cwd()
+import { debounce } from 'lodash-es'
+
+async function initializeRoutes() {
+  // Create the initial includes files
+  // Find all the routes
+  let routeFilePaths = await globby([
+    root + '/routes/**/*.{ts,tsx,js,jsx}',
+    '!' + root + '/routes/**/_*.{ts,tsx,js,jsx}',
+  ])
+  let { routeOptionsString, routeDefinitionsString } = createRouteIncludes(routeFilePaths, root)
+  await includeCleo({ routeDefinitions: routeDefinitionsString, routeOptions: routeOptionsString })
+
+  return routeFilePaths
+}
 
 export async function createDevServer() {
   // @ts-ignore
   let app, stop, restart, listen
 
-  // Find all the routes
-  let routePaths = await globby(root + '/routes/**/*.{ts,tsx,js,jsx}')
+  // Load the initial includes files
+  await initializeRoutes()
+
+  const restartFastify = debounce(async function () {
+    console.time('Rebooting Fastify server')
+    // @ts-ignore
+    await restart(restartableOpts)
+    console.timeEnd('Rebooting Fastify server')
+  }, 50)
 
   let vite = await createServer({
     configFile: path.resolve(__dirname + '/../vite.config.ts'),
@@ -33,13 +55,25 @@ export async function createDevServer() {
       Inspect(),
       {
         name: 'route-watcher',
-        async handleHotUpdate({ file, modules, read }) {
-          if (file.startsWith(root + '/routes/')) {
-            console.time('Rebooting Fastify server')
-            // @ts-ignore
-            await restart(restartableOpts)
-            console.timeEnd('Rebooting Fastify server')
-          }
+        configureServer(server) {
+          server.watcher.add('/routes/**/*.{ts,tsx,js,jsx}')
+          console.log({ root })
+          /**
+           * Note: Unlink/add are triggered simultaneously when renaming a file leading to
+           * two restarts, so the restart function here is debounced
+           **/
+          server.watcher.on('add', async (file) => {
+            console.log('add', { file })
+            if (file.startsWith(root + '/routes/')) await restartFastify()
+          })
+          server.watcher.on('change', async (file) => {
+            console.log('change', { file })
+            if (file.startsWith(root + '/routes/')) await restartFastify()
+          })
+          server.watcher.on('unlink', async (file) => {
+            console.log('unlink', { file })
+            if (file.startsWith(root + '/routes/')) await restartFastify()
+          })
         },
       },
     ],
@@ -49,12 +83,15 @@ export async function createDevServer() {
   let appLoader = (await vite.ssrLoadModule(__dirname + '/app.js')).createApp
 
   async function runAfterLoad(app: FastifyInstance) {
+    // Reload the route files and update the includes files
+    let routeFilePaths = await initializeRoutes()
+
     // Render helper is called dynamically
-    // TODO: dynamically add renderFragment too
+    // TODO: dynamically add renderFragment too?
     app.decorateReply('render', null)
 
-    for (let i = 0; i < routePaths.length; i++) {
-      let filePath = routePaths[i]
+    for (let i = 0; i < routeFilePaths.length; i++) {
+      let filePath = routeFilePaths[i]
       // Load the route file
       await vite.ssrLoadModule(filePath).then((module) => {
         // Transform the file path to a Fastify route path config
@@ -62,7 +99,7 @@ export async function createDevServer() {
 
         routeMethods.forEach((method) => {
           if (module[method]) {
-            // TODO: Add dynamic error handler/other functions
+            // TODO: Add dynamic error handler/other functions?
             // @ts-ignore
             let dynamicHandler = async function (req, res) {
               const newModule = await vite.ssrLoadModule(filePath)
@@ -98,10 +135,8 @@ export async function createDevServer() {
   }
 
   async function rootAppHook(app: FastifyInstance) {
-    console.log('registering')
     await app.register(middie)
     app.use(vite.middlewares)
-    console.log('done registering')
   }
 
   const restartableOpts = {
@@ -110,7 +145,7 @@ export async function createDevServer() {
     app: appLoader,
     hostname: '127.0.0.1',
     port: 3000,
-
+    ssrFixStacktrace: vite.ssrFixStacktrace,
     ...fastifyOpts,
   }
 

@@ -1,10 +1,10 @@
 import fastify, { FastifyInstance, FastifyReply } from 'fastify'
 
 import { renderRoute, renderComponent, RenderRouteOptions, RenderFragmentOptions } from './lib/view/render'
-// import { ErrorLayout } from '##/layouts/error'
+import { ErrorLayout } from './layouts/error'
 
 import { __dirname, isDev } from './lib/util'
-import { h } from 'preact'
+import type { h } from 'preact'
 
 declare module 'fastify' {
   interface FastifyReply {
@@ -54,7 +54,7 @@ export async function createApp(app: FastifyInstance, opts: any) {
 
   // Custom error handler for rendering error layout
   app.setErrorHandler(async function (error, request, reply) {
-    isDev && opts.vite.ssrFixStacktrace(error)
+    isDev && opts?.ssrFixStacktrace(error)
     // Log error
     this.log.error(error)
     /**
@@ -62,11 +62,11 @@ export async function createApp(app: FastifyInstance, opts: any) {
      */
     try {
       // TODO: Load error layout or use fallback
-      // await reply.status(error.statusCode ?? 500).render({
-      //   component: ErrorLayout,
-      //   head: errorHead,
-      //   props: { error },
-      // })
+      await reply.status(error.statusCode ?? 500).render({
+        component: ErrorLayout,
+        head: { title: `${error.statusCode} Error` },
+        props: { error },
+      })
     } catch (e) {
       this.log.error(error)
       let errorMessage = 'There was an error processing your request. Please try again later.'

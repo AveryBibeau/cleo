@@ -1,6 +1,9 @@
+import { inspect } from 'util'
+import { createRouterConfig } from './routes.js'
+
 export const routeMethods = ['delete', 'get', 'head', 'patch', 'post', 'put', 'options']
 
-export function parseFilePathToRoutePath(path: string, dir: string): string {
+export function parseFilePathToRoutePath(path: string, dir: string, keepIndex: boolean = false): string {
   let filePath = path.replace(dir, '').replace('/routes', '')
 
   const squareBracketRegex = /\[(.*)\]/gu
@@ -21,6 +24,8 @@ export function parseFilePathToRoutePath(path: string, dir: string): string {
   // Replace multiple params like [slug]-[id] with :slug-:id
   const withMultiParams = withRouteParams.replace(multipleParamRegex, '-:').replace(routeParamRegex, '/:')
 
+  if (keepIndex) return withMultiParams
+
   // Replace /index to squash index routes
   const withoutIndex = withMultiParams.replace('/index', '')
 
@@ -37,8 +42,42 @@ export function parseRoutePathToName(path: string): string {
 
   if (path === '') return 'index'
 
-  path.replace('/:', '-')
-  path.replace('/', '-')
+  path = path.replace('/:', '-')
+  path = path.replace('/', '-')
 
   return path
+}
+
+export function createRouteIncludes(routeFilePaths: string[], root: string) {
+  let routePaths = routeFilePaths.map((filePath) => parseFilePathToRoutePath(filePath, root))
+  let routeDefinitions = routePaths.map((path) => ({
+    name: parseRoutePathToName(path),
+    path,
+  }))
+
+  let routeConfig = createRouterConfig(routeDefinitions)
+
+  let routeOptions = routeConfig.map((config) => {
+    let options: Record<any, any> = {
+      name: config.name,
+    }
+    if (config.keys) {
+      let params: Record<any, any> = {}
+      config.keys.forEach((key) => (params[key.name] = 'any'))
+      options.params = params
+    }
+    return options
+  })
+
+  let routeOptionsString = `
+    type RouteOptions =
+      |
+        ${routeOptions.map((option) => inspect(option)).join(' | ')}
+    `.replace("'any'", 'any')
+
+  let routeDefinitionsString = `
+    const routeConfig = createRouterConfig(${inspect(routeDefinitions)})
+    `
+
+  return { routeOptionsString, routeDefinitionsString }
 }
