@@ -47,5 +47,14 @@
       "import": "./dist/exports/index.js"
     }
   },
-  "types": "types/index.d.ts"
+  "types": "types/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ordinal-studio/cleo.git"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ordinal-studio/cleo/issues"
+  },
+  "homepage": "https://github.com/ordinal-studio/cleo#readme"
 }
