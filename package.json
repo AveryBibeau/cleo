@@ -1,6 +1,6 @@
 {
   "name": "@ordinal/cleo",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch"
@@ -38,8 +38,7 @@
     "vite-plugin-checker": "^0.5.1",
     "vite-plugin-inspect": "^0.7.5"
   },
-  "devDependencies": {
-  },
+  "devDependencies": {},
   "exports": {
     "./package.json": "./package.json",
     ".": {

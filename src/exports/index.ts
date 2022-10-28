@@ -1,1 +1,1 @@
-export { getHref as originalGetHref, createRouterConfig } from '../lib/routes'
+export { getHref as originalGetHref, createRouterConfig } from '../lib/routes.js'
