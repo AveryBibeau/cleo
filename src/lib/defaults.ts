@@ -1,5 +1,5 @@
-import { HeadProps } from '##/lib/view/helmet.js'
+import { HeadProps } from '../lib/view/helmet'
 
 export const defaultHead: HeadProps = {
-  title: 'JSX+SSR',
+  title: 'Cleo',
 }

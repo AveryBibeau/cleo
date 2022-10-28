@@ -1,6 +1,0 @@
-{
-  "typescript.preferences.importModuleSpecifier": "non-relative",
-  "files.associations": {
-    "*.scss": "postcss"
-  }
-}

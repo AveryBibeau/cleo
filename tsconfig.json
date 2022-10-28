@@ -9,14 +9,10 @@
     "jsxFactory": "h",
     "jsxFragmentFactory": "Fragment",
     "sourceMap": true,
-    "noEmit": true,
     "baseUrl": "./src",
-    "paths": {
-      "##/*": ["./*"]
-    },
-
     "strict": true,
     "esModuleInterop": true,
+    "allowJs": true,
     "skipLibCheck": true,
     "skipDefaultLibCheck": false,
     "forceConsistentCasingInFileNames": true
@@ -24,6 +20,6 @@
   "watchOptions": {
     "excludeDirectories": ["**/node_modules", "./dist"]
   },
-  "include": ["./@types", "./src/**/*.ts", "./src/**/*.tsx"],
-  "exclude": ["./node_modules", "./dist"]
+  "include": ["types", "./src/@types", "./src/**/*.ts", "./src/**/*.js", "./src/**/*.tsx"],
+  "exclude": ["./node_modules", "./dist", "./src/includes"]
 }
