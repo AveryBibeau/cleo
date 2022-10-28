@@ -4,7 +4,7 @@ import { RawRequestDefaultExpression, RawServerDefault } from 'fastify'
 import { RouteGenericInterface } from 'fastify'
 import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox'
 
-import { originalGetHref, createRouterConfig } from 'cleo'
+import { originalGetHref, createRouterConfig } from '@ordinal/cleo'
 
 export type RequestHandler<S extends FastifySchema = {}> = RouteShorthandOptionsWithHandler<
   RawServerDefault,
