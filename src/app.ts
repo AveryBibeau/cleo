@@ -1,9 +1,9 @@
 import fastify, { FastifyInstance, FastifyReply } from 'fastify'
 
-import { renderRoute, renderComponent, RenderRouteOptions, RenderFragmentOptions } from './lib/view/render'
-import { ErrorLayout } from './layouts/error'
+import { renderRoute, renderComponent, RenderRouteOptions, RenderFragmentOptions } from './lib/view/render.jsx'
+import { ErrorLayout } from './layouts/error.jsx'
 
-import { __dirname, isDev } from './lib/util'
+import { __dirname, isDev } from './lib/util.js'
 import type { h } from 'preact'
 
 declare module 'fastify' {

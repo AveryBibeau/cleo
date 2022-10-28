@@ -1,11 +1,11 @@
 import render from 'preact-render-to-string'
 import { h, ComponentType, FunctionComponent, ComponentChildren, createContext } from 'preact'
-import { helmet, HeadProps } from './helmet'
-import { defaultHead } from '../defaults'
-import { DefaultLayout, DefaultLayoutProps } from '../../layouts/default'
+import { helmet, HeadProps } from './helmet.jsx'
+import { defaultHead } from '../defaults.js'
+import { DefaultLayout, DefaultLayoutProps } from '../../layouts/default.jsx'
 import { FastifyReply, FastifyRequest } from 'fastify'
-import context from '../view/context'
-import { Stuff } from '../view/context'
+import context from '../view/context.js'
+import type { Stuff } from '../view/context.js'
 import { merge } from 'lodash-es'
 
 type SharedRenderRouteOptions<P = {}> = {
@@ -79,6 +79,7 @@ export function renderComponent<P extends h.JSX.IntrinsicAttributes>(
   context.stuff.set(options.stuff ?? {})
 
   const Component = options.component
+  // @ts-ignore
   const markup = render(<Component {...(options.props ?? ({} as P))}></Component>)
 
   return markup
@@ -94,11 +95,13 @@ function renderPage<P extends h.JSX.IntrinsicAttributes, L>(
 ) {
   const Layout = layout
   const Page = page
+  // @ts-ignore
   const markup = render(
     <Layout {...(layoutProps as L)}>
       <Page {...props}></Page>
     </Layout>
   )
+  // @ts-ignore
   const headTags = render(helmet(head))
 
   const html = template.replace(`<!--ssr-outlet-->`, markup).replace('<!--ssr-head-->', headTags ?? '')

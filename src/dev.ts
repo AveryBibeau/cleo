@@ -52,6 +52,7 @@ export async function createDevServer() {
   let vite = await createServer({
     configFile: path.resolve(__dirname + '/../vite.config.ts'),
     plugins: [
+      // @ts-ignore
       Inspect(),
       {
         name: 'route-watcher',
@@ -135,6 +136,7 @@ export async function createDevServer() {
   }
 
   async function rootAppHook(app: FastifyInstance) {
+    // @ts-ignore
     await app.register(middie)
     app.use(vite.middlewares)
   }

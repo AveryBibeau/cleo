@@ -7,9 +7,9 @@ import { pathToRegexp, compile, Key, PathFunction } from 'path-to-regexp'
 // @ts-ignore
 import { fastifyOpts } from './shared.js'
 
-import { createApp } from './app'
+import { createApp } from './app.js'
 
-import { renderRoute } from './lib/view/render'
+import { renderRoute } from './lib/view/render.js'
 
 // @ts-ignore
 import { parseFilePathToRoutePath, routeMethods } from './lib/parseRoutes.js'
@@ -49,7 +49,8 @@ export async function createServer() {
   app.register(FastifyStatic, {
     root: PUBLIC_DIR,
     index: false,
-    setHeaders: (res, pathName) => {
+    // @ts-ignore
+    setHeaders: (res, pathName: string) => {
       const relativePath = pathName.replace(PUBLIC_DIR, '')
       if (relativePath.startsWith('/assets/')) {
         res.setHeader('Cache-Control', 'public, max-age=31536000, immutable')
