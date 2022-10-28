@@ -52,7 +52,7 @@ export default defineConfig(({ mode, command }) => {
     resolve: {
       alias: {
         '##': path.resolve(root, './'),
-        '#app': path.resolve(root, './.cleo'),
+        '#app': path.resolve(root, './.cleo/index.ts'),
       },
       dedupe: ['preact'],
     },
