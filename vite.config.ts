@@ -8,6 +8,8 @@ import { createRequire } from 'module'
 
 const require = createRequire(import.meta.url)
 
+import AutoImport from 'unplugin-auto-import/vite'
+
 export default defineConfig(({ mode, command }) => {
   const isDev = mode === 'development'
   const isServer = process.env.VITE_BUILD === 'ssr'
@@ -56,7 +58,21 @@ export default defineConfig(({ mode, command }) => {
       },
       dedupe: ['preact'],
     },
-    plugins: [checker({ typescript: true })],
+    plugins: [
+      checker({ typescript: true }),
+      // Note: preact auto imports with "jsxImportSource": "preact" in tsconfig.json required version match for preact
+      // between cleo and project
+      AutoImport({
+        imports: [
+          {
+            preact: ['h'],
+            '@sinclair/typebox': [['Type', 'TypeBox']],
+            '#app': ['createRequestHandler', 'getHref'],
+          },
+        ],
+        dts: './.cleo/@types/auto-imports.d.ts',
+      }),
+    ],
     ssr: {
       target: 'node',
       external: ['fastify', 'preact/hooks', 'preact'],
