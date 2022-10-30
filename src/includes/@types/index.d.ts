@@ -1,10 +1,10 @@
-import { RenderRouteOptions, RenderFragmentOptions } from "cleo";
+import { RenderRouteOptions, RenderFragmentOptions } from '@ordinal/cleo'
 
-declare module "fastify" {
+declare module 'fastify' {
   interface FastifyReply {
-    html: (content: string) => FastifyReply;
-    render: <P, L>(options: RenderRouteOptions<P, L>) => FastifyReply;
-    renderFragment: <P>(options: RenderFragmentOptions<P>) => FastifyReply;
-    startTime: number;
+    html: (content: string) => FastifyReply
+    render: <P, L>(options: RenderRouteOptions<P, L>) => FastifyReply
+    renderFragment: <P>(options: RenderFragmentOptions<P>) => FastifyReply
+    startTime: number
   }
 }
