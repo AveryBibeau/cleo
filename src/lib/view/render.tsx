@@ -1,18 +1,15 @@
 import render from 'preact-render-to-string'
 import { h, ComponentType, FunctionComponent, ComponentChildren, createContext } from 'preact'
-import { helmet, HeadProps } from './helmet.jsx'
+import { helmet, HeadProps } from './helmet.js'
 import { defaultHead } from '../defaults.js'
-import { DefaultLayout, DefaultLayoutProps } from '../../layouts/default.jsx'
+import { DefaultLayout, DefaultLayoutProps } from '../../layouts/default.js'
 import { FastifyReply, FastifyRequest } from 'fastify'
-import context from '../view/context.js'
-import type { Stuff } from '../view/context.js'
 import { merge } from 'lodash-es'
 
 type SharedRenderRouteOptions<P = {}> = {
   component: ComponentType<P>
   props?: P & { children?: ComponentChildren; addClass?: string }
   head?: HeadProps
-  stuff?: Stuff
   presession?: boolean
 }
 
@@ -30,7 +27,6 @@ export type RenderRouteOptions<P = {}, L = {}> = RenderRouteOptionsDefault<P> | 
 export type RenderFragmentOptions<P = {}> = {
   component: ComponentType<P>
   props?: P & { children?: ComponentChildren; addClass?: string }
-  stuff?: Stuff
 }
 
 export async function renderRoute<P extends h.JSX.IntrinsicAttributes, L>(
@@ -47,22 +43,6 @@ export async function renderRoute<P extends h.JSX.IntrinsicAttributes, L>(
 
   let layout = options.layout === undefined ? DefaultLayout : options.layout
 
-  // context.session.set(request.session ?? {})
-  let url = new URL(request.protocol + '://' + request.hostname + request.url)
-
-  let csrfToken = undefined
-
-  // Generate csrf token for user or for routes requiring a presession
-  // if (request.session.user || options.presession) {
-  //   csrfToken = await reply.generateCsrf()
-  // }
-
-  context.page.set({
-    url,
-    params: (request.params ?? {}) as Record<string, any>,
-  })
-  context.stuff.set(options.stuff ?? {})
-
   return renderPage<P, L>(layout, options.component, propsToUse, layoutPropsToUse, headProps, template)
 }
 
@@ -70,14 +50,6 @@ export function renderComponent<P extends h.JSX.IntrinsicAttributes>(
   options: RenderFragmentOptions<P>,
   request: FastifyRequest
 ) {
-  // context.session.set(request.session ?? {})
-  let url = new URL(request.protocol + '://' + request.hostname + request.url)
-  context.page.set({
-    url,
-    params: (request.params ?? {}) as Record<string, any>,
-  })
-  context.stuff.set(options.stuff ?? {})
-
   const Component = options.component
   // @ts-ignore
   const markup = render(<Component {...(options.props ?? ({} as P))}></Component>)

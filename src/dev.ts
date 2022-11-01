@@ -10,6 +10,7 @@ import { createServer } from 'vite'
 import { inspect } from 'util'
 
 import { includeCleo } from './lib/includes.js'
+import { fastifyRequestContextPlugin } from '@fastify/request-context'
 
 // The library dir
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -122,7 +123,7 @@ export async function createDevServer() {
         let templateHtml = fs.readFileSync(path.resolve(root + '/index.html'), 'utf-8')
 
         let template = await vite.transformIndexHtml(url, templateHtml)
-        let { renderRoute } = await vite.ssrLoadModule(path.resolve(__dirname + '/lib/view/render.jsx'))
+        let { renderRoute } = await vite.ssrLoadModule(path.resolve(__dirname + '/lib/view/render.js'))
 
         // @ts-ignore
         reply.render = async function (options) {
@@ -139,6 +140,21 @@ export async function createDevServer() {
     // @ts-ignore
     await app.register(middie)
     app.use(vite.middlewares)
+
+    app.register(fastifyRequestContextPlugin, {})
+
+    app.addHook('onRequest', async (req, reply) => {
+      // @ts-ignore
+      console.log(req.routerPath)
+      let url = new URL(req.protocol + '://' + req.hostname + req.url)
+
+      req.requestContext.set('route', {
+        url,
+        params: (req.params ?? {}) as Record<string, any>,
+      })
+
+      return
+    })
   }
 
   const restartableOpts = {

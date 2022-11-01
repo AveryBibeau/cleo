@@ -1,4 +1,4 @@
-import { HeadProps } from './view/helmet.jsx'
+import { HeadProps } from './view/helmet.js'
 
 export const defaultHead: HeadProps = {
   title: 'Cleo',
