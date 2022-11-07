@@ -9,7 +9,7 @@ import { fastifyOpts } from './shared.js'
 
 import { createApp } from './app.js'
 
-import { renderRoute } from './lib/view/render.jsx'
+import { renderRoute } from './lib/view/render.js'
 
 // @ts-ignore
 import { parseFilePathToRoutePath, routeMethods } from './lib/parseRoutes.js'

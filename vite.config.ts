@@ -4,10 +4,6 @@ import checker from 'vite-plugin-checker'
 import { fileURLToPath } from 'url'
 import analyze from 'rollup-plugin-analyzer'
 
-import { createRequire } from 'module'
-
-const require = createRequire(import.meta.url)
-
 import AutoImport from 'unplugin-auto-import/vite'
 
 export default defineConfig(({ mode, command }) => {
