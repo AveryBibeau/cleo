@@ -7,6 +7,7 @@ import { fastifyOpts } from './shared.js'
 import { createApp } from './app.js'
 import { renderRoute, RenderRouteOptions } from './lib/view/render.js'
 import { parseFilePathToRoutePath, routeMethods } from './lib/parseRoutes.js'
+import { ServerResponse } from 'http'
 
 export async function createServer() {
   const root = process.cwd()
@@ -38,12 +39,12 @@ export async function createServer() {
     index: false,
 
     // TODO: Allow passing custom headers for static assets
-    setHeaders: (reply: FastifyReply, pathName: string) => {
+    setHeaders: (reply: ServerResponse, pathName: string) => {
       const relativePath = pathName.replace(PUBLIC_DIR, '')
       if (relativePath.startsWith('/assets/')) {
-        reply.header('Cache-Control', 'public, max-age=31536000, immutable')
+        reply.setHeader('Cache-Control', 'public, max-age=31536000, immutable')
       } else {
-        reply.header('Cache-Control', 'public, max-age=3600')
+        reply.setHeader('Cache-Control', 'public, max-age=3600')
       }
     },
   } as FastifyStaticOptions)
