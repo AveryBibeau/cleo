@@ -4,11 +4,12 @@ import fs from 'fs-extra'
 import { parseFilePathToRoutePath } from './lib/parseRoutes.js'
 import { createServer } from './prodServer.js'
 import fetch from 'node-fetch'
+import { CleoConfig } from './cleoConfig.js'
 
 // The project root
 const root = process.cwd()
 
-export async function generate() {
+export async function generate(cleoConfig: CleoConfig) {
   let app = await createServer()
   await app.listen({
     port: 3000,
@@ -19,10 +20,6 @@ export async function generate() {
     root + '/routes/**/*.{ts,tsx,js,jsx}',
     '!' + root + '/routes/**/_*.{ts,tsx,js,jsx}',
   ])
-
-  // @ts-ignore
-  let configModule = await import('/cleo.config.ts')
-  console.log({ configModule }, configModule.default)
 
   async function generatePath(routePath: string, resultFilePath: string) {
     let res = await fetch(`http://localhost:3000${routePath}`)
@@ -46,21 +43,20 @@ export async function generate() {
   }
 
   // Generate additional routes
-  if (configModule?.default?.generate?.addPaths) {
-    let addPathsOpts = configModule.default.generate.addPaths
-    let additionalPaths = []
+  if (typeof cleoConfig?.generate === 'object') {
+    let addPathsOpts = cleoConfig.generate.addPaths
+    let additionalPaths: string[] = []
     if (typeof addPathsOpts === 'function') {
       additionalPaths = await addPathsOpts()
-    } else if (typeof addPathsOpts === 'object' && addPathsOpts.length > 0) {
+    } else if (Array.isArray(addPathsOpts)) {
       additionalPaths = addPathsOpts
     }
-    console.log('additional paths to generate', additionalPaths)
 
     for (let routePath of additionalPaths) {
       let resultFilePath = routePath
       if (resultFilePath.endsWith('/')) resultFilePath = resultFilePath.slice(0, -1)
       if (!resultFilePath.startsWith('/')) resultFilePath = '/' + resultFilePath
-      console.log('generating', { routePath, resultFilePath })
+
       await generatePath(routePath, resultFilePath)
     }
   }

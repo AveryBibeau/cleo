@@ -13,10 +13,21 @@ import { includeCleo } from '../lib/includes.js'
 import { createRouteIncludes } from '../lib/parseRoutes.js'
 import { fileURLToPath } from 'url'
 
-import { pathExists } from 'fs-extra'
+import { ensureDir, pathExists } from 'fs-extra'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const root = process.cwd()
+
+export function ensureCleoDirs(): Plugin {
+  return {
+    name: 'vite-plugin-cleo:ensure-cleo-dirs',
+    apply: 'build',
+    enforce: 'pre',
+    async buildStart() {
+      await ensureDir(path.resolve(root, './.cleo/@types/'))
+    },
+  }
+}
 
 export async function chainBuild(cleoConfig: CleoConfig = {}): Promise<Plugin> {
   let viteConfig: ResolvedConfig
@@ -42,7 +53,7 @@ export async function chainBuild(cleoConfig: CleoConfig = {}): Promise<Plugin> {
         if (isStatic) {
           let generateModule = await import(path.resolve(root, './dist/server/generate.js'))
 
-          await generateModule.generate()
+          await generateModule.generate(cleoConfig)
         }
       }
     },
@@ -56,6 +67,7 @@ export async function cleo(cleoConfig: CleoConfig = {}): Promise<Plugin[]> {
   let isStatic: boolean = !!cleoConfig.generate
 
   return [
+    ensureCleoDirs(),
     {
       name: 'vite-plugin-cleo',
       /**
@@ -100,6 +112,7 @@ export async function cleo(cleoConfig: CleoConfig = {}): Promise<Plugin[]> {
             root + '/routes/**/*.{ts,tsx,js,jsx}',
             '!' + root + '/routes/**/_*.{ts,tsx,js,jsx}',
           ])
+
           let { routeOptionsString, routeDefinitionsString } = createRouteIncludes(routeFilePaths, root)
           await includeCleo({ routeDefinitions: routeDefinitionsString, routeOptions: routeOptionsString })
         }
@@ -107,7 +120,6 @@ export async function cleo(cleoConfig: CleoConfig = {}): Promise<Plugin[]> {
 
       // Creates the Vite dev server
       async configureServer(vite) {
-        console.log('configureServer')
         return async () => {
           await createDevServer(vite)
         }
@@ -124,7 +136,8 @@ export async function cleo(cleoConfig: CleoConfig = {}): Promise<Plugin[]> {
           '#app': ['createRequestHandler', 'getHref'],
         },
       ],
-      dts: './.cleo/@types/auto-imports.d.ts',
+      // TODO: This fails if included in the ./.cleo/@types directory if the directory doesn't exist yet
+      dts: './auto-imports.d.ts',
     }),
     chainBuild(cleoConfig),
   ]
