@@ -1,5 +1,4 @@
-import { v4 as uuid } from 'uuid'
-import { defineConfig, UserConfig } from 'vite'
+import { UserConfig } from 'vite'
 import path from 'path'
 
 export const fastifyOpts = {

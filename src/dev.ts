@@ -6,7 +6,6 @@ import { start } from '@fastify/restartable'
 import type { ViteDevServer } from 'vite'
 
 import { includeCleo } from './lib/includes.js'
-import { fastifyRequestContextPlugin } from '@fastify/request-context'
 
 // The library dir
 const __dirname = path.dirname(fileURLToPath(import.meta.url))

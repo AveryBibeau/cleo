@@ -4,7 +4,6 @@ import { baseViteConfig } from '../shared.js'
 import { createDevServer } from '../dev.js'
 
 export { getHref as originalGetHref, createRouterConfig } from '../lib/routes.js'
-export { requestContext } from '@fastify/request-context'
 
 import checker from 'vite-plugin-checker'
 import AutoImport from 'unplugin-auto-import/vite'
