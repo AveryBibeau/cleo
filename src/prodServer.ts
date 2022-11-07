@@ -1,17 +1,11 @@
 import fs from 'fs'
 import path from 'path'
-import FastifyStatic from '@fastify/static'
-import Fastify from 'fastify'
-import { pathToRegexp, compile, Key, PathFunction } from 'path-to-regexp'
+import FastifyStatic, { FastifyStaticOptions } from '@fastify/static'
+import { FastifyReply, fastify } from 'fastify'
 
-// @ts-ignore
 import { fastifyOpts } from './shared.js'
-
 import { createApp } from './app.js'
-
-import { renderRoute } from './lib/view/render.js'
-
-// @ts-ignore
+import { renderRoute, RenderRouteOptions } from './lib/view/render.js'
 import { parseFilePathToRoutePath, routeMethods } from './lib/parseRoutes.js'
 
 export async function createServer() {
@@ -19,20 +13,13 @@ export async function createServer() {
   // Find all the routes
   let routeModules = await import.meta.glob(['/routes/**/*.{ts,tsx,js,jsx}', '!/routes/**/_*.{ts,tsx,js,jsx}'])
 
-  // @ts-ignore
-  let app = Fastify(fastifyOpts)
-  // @ts-ignore
+  let app = fastify(fastifyOpts)
+
   await createApp(app, {})
 
   for (const filePath in routeModules) {
     let module = await routeModules[filePath]()
     let path = parseFilePathToRoutePath(filePath, root)
-
-    if (path.includes('/:')) {
-      let keys: Key[] = []
-      let matcher = pathToRegexp(path, keys)
-      console.log({ path, keys })
-    }
 
     routeMethods.forEach((method: string) => {
       // @ts-ignore
@@ -49,25 +36,23 @@ export async function createServer() {
   app.register(FastifyStatic, {
     root: PUBLIC_DIR,
     index: false,
-    // @ts-ignore
-    setHeaders: (res, pathName: string) => {
+
+    // TODO: Allow passing custom headers for static assets
+    setHeaders: (reply: FastifyReply, pathName: string) => {
       const relativePath = pathName.replace(PUBLIC_DIR, '')
       if (relativePath.startsWith('/assets/')) {
-        res.setHeader('Cache-Control', 'public, max-age=31536000, immutable')
+        reply.header('Cache-Control', 'public, max-age=31536000, immutable')
       } else {
-        res.setHeader('Cache-Control', 'public, max-age=3600')
+        reply.header('Cache-Control', 'public, max-age=3600')
       }
     },
-  })
+  } as FastifyStaticOptions)
 
   // Get the production html template
   let prodTemplate = fs.readFileSync(path.resolve(root + '/dist/client/index.html'), 'utf-8')
 
-  // @ts-ignore
-  app.decorateReply('render', async function (options) {
-    // @ts-ignore
+  app.decorateReply('render', async function (this: FastifyReply, options: RenderRouteOptions) {
     let result = await renderRoute(options, this.request, this, prodTemplate)
-    // @ts-ignore
     return this.html(result)
   })
 
