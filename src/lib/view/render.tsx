@@ -1,10 +1,8 @@
-import render from 'preact-render-to-string'
-import { h, ComponentType, FunctionComponent, ComponentChildren, createContext } from 'preact'
+import { render } from 'preact-render-to-string'
+import { h, ComponentType, FunctionComponent, ComponentChildren } from 'preact'
 import { helmet, HeadProps } from './helmet.js'
-import { defaultHead } from '../defaults.js'
 import { DefaultLayout, DefaultLayoutProps } from '../../layouts/default.js'
 import { FastifyReply, FastifyRequest } from 'fastify'
-import { merge } from 'lodash-es'
 
 type SharedRenderRouteOptions<P = {}> = {
   component: ComponentType<P>
@@ -35,15 +33,12 @@ export async function renderRoute<P extends h.JSX.IntrinsicAttributes, L>(
   reply: FastifyReply,
   template: string
 ) {
-  let headProps = { ...defaultHead }
-  if (options.head) headProps = merge(headProps, options.head)
-
   let propsToUse = options.props ?? ({} as P)
   let layoutPropsToUse = options.layoutProps ?? ({} as L)
 
   let layout = options.layout === undefined ? DefaultLayout : options.layout
 
-  return renderPage<P, L>(layout, options.component, propsToUse, layoutPropsToUse, headProps, template)
+  return renderPage<P, L>(layout, options.component, propsToUse, layoutPropsToUse, options.head ?? {}, template)
 }
 
 export function renderComponent<P extends h.JSX.IntrinsicAttributes>(
@@ -51,7 +46,6 @@ export function renderComponent<P extends h.JSX.IntrinsicAttributes>(
   request: FastifyRequest
 ) {
   const Component = options.component
-  // @ts-ignore
   const markup = render(<Component {...(options.props ?? ({} as P))}></Component>)
 
   return markup
@@ -67,13 +61,13 @@ function renderPage<P extends h.JSX.IntrinsicAttributes, L>(
 ) {
   const Layout = layout
   const Page = page
-  // @ts-ignore
+
   const markup = render(
     <Layout {...(layoutProps as L)}>
       <Page {...props}></Page>
     </Layout>
   )
-  // @ts-ignore
+
   const headTags = render(helmet(head))
 
   const html = template.replace(`<!--ssr-outlet-->`, markup).replace('<!--ssr-head-->', headTags ?? '')

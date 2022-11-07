@@ -7,6 +7,7 @@ import { fileURLToPath } from 'url'
 const root = process.cwd()
 
 // The library root
+// @ts-ignore
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 interface IncludeCleoOpts {

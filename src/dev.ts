@@ -1,16 +1,11 @@
 import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
-import { FastifyInstance } from 'fastify'
-import middie from '@fastify/middie'
-import Inspect from 'vite-plugin-inspect'
-// @ts-ignore
-import { start } from './lib/restartable.js'
-import { createServer } from 'vite'
-import { inspect } from 'util'
+import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
+import { start } from '@fastify/restartable'
+import type { ViteDevServer } from 'vite'
 
 import { includeCleo } from './lib/includes.js'
-import { fastifyRequestContextPlugin } from '@fastify/request-context'
 
 // The library dir
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -19,10 +14,12 @@ import { globby } from 'globby'
 import { createRouteIncludes, parseFilePathToRoutePath, parseRoutePathToName, routeMethods } from './lib/parseRoutes.js'
 
 import { fastifyOpts } from './shared.js'
-import { createRouterConfig } from './lib/routes.js'
+
 const root = process.cwd()
 import { debounce } from 'lodash-es'
+import { RenderRouteOptions } from './lib/view/render.js'
 
+// TODO: dedupe this with build plugin
 async function initializeRoutes() {
   // Create the initial includes files
   // Find all the routes
@@ -36,54 +33,32 @@ async function initializeRoutes() {
   return routeFilePaths
 }
 
-export async function createDevServer() {
-  // @ts-ignore
-  let app, stop, restart, listen
+export async function createDevServer(vite: ViteDevServer) {
+  let app: FastifyInstance
+  let restart: Awaited<ReturnType<typeof start>>['restart']
+  let listen: Awaited<ReturnType<typeof start>>['listen']
 
-  // Load the initial includes files
-  await initializeRoutes()
-
-  const restartFastify = debounce(async function () {
+  const restartFastify = debounce(async function (file: string) {
+    if (!file.startsWith(root + '/routes/')) return
     console.time('Rebooting Fastify server')
-    // @ts-ignore
-    await restart(restartableOpts)
+    await restart()
     console.timeEnd('Rebooting Fastify server')
   }, 50)
 
-  let vite = await createServer({
-    configFile: path.resolve(__dirname + '/../vite.config.ts'),
-    plugins: [
-      // @ts-ignore
-      Inspect(),
-      {
-        name: 'route-watcher',
-        configureServer(server) {
-          server.watcher.add('/routes/**/*.{ts,tsx,js,jsx}')
-          console.log({ root })
-          /**
-           * Note: Unlink/add are triggered simultaneously when renaming a file leading to
-           * two restarts, so the restart function here is debounced
-           **/
-          server.watcher.on('add', async (file) => {
-            console.log('add', { file })
-            if (file.startsWith(root + '/routes/')) await restartFastify()
-          })
-          server.watcher.on('change', async (file) => {
-            console.log('change', { file })
-            if (file.startsWith(root + '/routes/')) await restartFastify()
-          })
-          server.watcher.on('unlink', async (file) => {
-            console.log('unlink', { file })
-            if (file.startsWith(root + '/routes/')) await restartFastify()
-          })
-        },
-      },
-    ],
-  })
+  /**
+   * Note: Unlink/add are triggered simultaneously when renaming a file leading to
+   * two restarts, so the restart function here is debounced
+   **/
+  vite.watcher.on('add', restartFastify)
+  vite.watcher.on('change', restartFastify)
+  vite.watcher.on('unlink', restartFastify)
 
   // Create the Fastify app from app.ts
   let appLoader = (await vite.ssrLoadModule(__dirname + '/app.js')).createApp
 
+  /**
+   * This will be called every time the Fastify server is restarted due to route file changes
+   */
   async function runAfterLoad(app: FastifyInstance) {
     // Reload the route files and update the includes files
     let routeFilePaths = await initializeRoutes()
@@ -102,8 +77,7 @@ export async function createDevServer() {
         routeMethods.forEach((method) => {
           if (module[method]) {
             // TODO: Add dynamic error handler/other functions?
-            // @ts-ignore
-            let dynamicHandler = async function (req, res) {
+            let dynamicHandler = async function (req: FastifyRequest, res: FastifyReply) {
               const newModule = await vite.ssrLoadModule(filePath)
               const newHandler = newModule[method].handler
               return await newHandler(req, res)
@@ -126,7 +100,7 @@ export async function createDevServer() {
         let { renderRoute } = await vite.ssrLoadModule(path.resolve(__dirname + '/lib/view/render.js'))
 
         // @ts-ignore
-        reply.render = async function (options) {
+        reply.render = async function (this: FastifyReply, options: RenderRouteOptions) {
           let result = await renderRoute(options, req, reply, template)
           return this.html(result)
         }
@@ -136,49 +110,31 @@ export async function createDevServer() {
     })
   }
 
-  async function rootAppHook(app: FastifyInstance) {
-    // @ts-ignore
-    await app.register(middie)
-    app.use(vite.middlewares)
+  vite.middlewares.use(async function (req, res, next) {
+    await restartable.app.ready()
+    return restartable.app.routing(req, res)
+  })
 
-    app.register(fastifyRequestContextPlugin, {})
-
-    app.addHook('onRequest', async (req, reply) => {
-      // @ts-ignore
-      console.log(req.routerPath)
-      let url = new URL(req.protocol + '://' + req.hostname + req.url)
-
-      req.requestContext.set('route', {
-        url,
-        params: (req.params ?? {}) as Record<string, any>,
-      })
-
-      return
-    })
-  }
-
+  // TODO: Merge with user provided Fastify opts
   const restartableOpts = {
     runAfterLoad,
-    rootAppHook,
     app: appLoader,
-    hostname: '127.0.0.1',
-    port: 3000,
     ssrFixStacktrace: vite.ssrFixStacktrace,
+    logger: {
+      transport: {
+        target: 'pino-pretty',
+        options: {
+          translateTime: 'HH:MM:ss Z',
+          ignore: 'pid,hostname',
+        },
+      },
+    },
     ...fastifyOpts,
   }
 
   // @ts-ignore
-  restartableOpts.logger.transport = {
-    target: 'pino-pretty',
-    options: {
-      translateTime: 'HH:MM:ss Z',
-      ignore: 'pid,hostname',
-    },
-  }
-
   let restartable = await start(restartableOpts)
 
-  stop = restartable.stop
   restart = restartable.restart
   listen = restartable.listen
   app = restartable.app

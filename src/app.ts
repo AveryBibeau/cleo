@@ -6,40 +6,31 @@ import { ErrorLayout } from './layouts/error.js'
 import { __dirname, isDev } from './lib/util.js'
 import type { h } from 'preact'
 
-declare module 'fastify' {
-  interface FastifyReply {
-    html: (content: string) => FastifyReply
-    render: <P, L>(options: RenderRouteOptions<P, L>) => FastifyReply
-    renderFragment: <P>(options: RenderFragmentOptions<P>) => FastifyReply
-    startTime: number
-  }
-}
-
 export async function createApp(app: FastifyInstance, opts: any) {
   /**
    * Add custom logging to filter logs for static resources in dev (/public/ shouldn't be served the app
    * in production)
    */
-  app.addHook('onRequest', (req, reply, done) => {
-    // Ignore requests without a registered route (static files)
-    if (!req.routerPath) return done()
-    reply.startTime = performance.now()
-    req.log.info({ url: req.raw.url, method: req.method }, '[Request]')
-    done()
-  })
-  app.addHook('onResponse', (req, reply, done) => {
-    // Ignore requests without a registered route (static files)
-    if (!req.routerPath) return done()
-    req.log.info(
-      {
-        url: req.raw.url,
-        statusCode: reply.raw.statusCode,
-        durationMs: performance.now() - reply.startTime,
-      },
-      '[Reply]'
-    )
-    done()
-  })
+  // app.addHook('onRequest', (req, reply, done) => {
+  //   // Ignore requests without a registered route (static files)
+  //   if (!req.routerPath) return done()
+  //   reply.startTime = performance.now()
+  //   req.log.info({ url: req.raw.url, method: req.method }, '[Request]')
+  //   done()
+  // })
+  // app.addHook('onResponse', (req, reply, done) => {
+  //   // Ignore requests without a registered route (static files)
+  //   if (!req.routerPath) return done()
+  //   req.log.info(
+  //     {
+  //       url: req.raw.url,
+  //       statusCode: reply.raw.statusCode,
+  //       durationMs: performance.now() - reply.startTime,
+  //     },
+  //     '[Reply]'
+  //   )
+  //   done()
+  // })
 
   app.decorateReply('html', function (this: FastifyReply, content: string) {
     return this.type('text/html; charset=utf-8').send(content)
