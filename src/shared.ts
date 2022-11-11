@@ -1,24 +1,15 @@
 import { UserConfig } from 'vite'
 import path from 'path'
+import { fileURLToPath } from 'url'
+import { globby } from 'globby'
+import { includeCleo } from './lib/includes.js'
+import { createRouteIncludes } from './lib/parseRoutes.js'
 
-export const fastifyOpts = {
-  // ajv: {
-  //   customOptions: {
-  //     strict: 'log',
-  //     keywords: ['kind', 'modifier'],
-  //   },
-  // },
-  // genReqId() {
-  //   return uuid()
-  // },
-  // logger: {
-  //   redact: {
-  //     paths: ['headers.authorization'],
-  //     remove: false,
-  //     censor: '[redacted]',
-  //   },
-  // },
-}
+// The project root
+export const root = process.cwd()
+
+// The library root
+export const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 export const includesPath = './.cleo'
 
@@ -63,4 +54,14 @@ export function baseViteConfig(): UserConfig {
   }
 }
 
-export const routesGlob = ['/routes/**/*.{ts,tsx,js,jsx}', '!/routes/**/_*.{ts,tsx,js,jsx}']
+export const routesGlob = [`${root}/routes/**/*.{ts,tsx,js,jsx}`, `!${root}/routes/**/_*.{ts,tsx,js,jsx}`]
+
+export async function initializeRoutes() {
+  // Create the initial includes files
+  // Find all the routes
+  let routeFilePaths = await globby(routesGlob)
+  let { routeOptionsString, routeDefinitionsString } = createRouteIncludes(routeFilePaths, root)
+  await includeCleo({ routeDefinitions: routeDefinitionsString, routeOptions: routeOptionsString })
+
+  return routeFilePaths
+}

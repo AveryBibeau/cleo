@@ -22,6 +22,7 @@ export async function generate(cleoConfig: CleoConfig) {
   ])
 
   async function generatePath(routePath: string, resultFilePath: string) {
+    console.log('Generating route', routePath)
     let res = await fetch(`http://localhost:3000${routePath}`)
 
     let htmlResponse = await res.text()

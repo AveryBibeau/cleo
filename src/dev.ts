@@ -1,39 +1,16 @@
 import fs from 'fs'
 import path from 'path'
-import { fileURLToPath } from 'url'
 import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
 import { start } from '@fastify/restartable'
 import type { ViteDevServer } from 'vite'
 
-import { includeCleo } from './lib/includes.js'
-
-// The library dir
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
-import { globby } from 'globby'
-
-import { createRouteIncludes, parseFilePathToRoutePath, parseRoutePathToName, routeMethods } from './lib/parseRoutes.js'
-
-import { fastifyOpts } from './shared.js'
-
-const root = process.cwd()
+import { parseFilePathToRoutePath, routeMethods } from './lib/parseRoutes.js'
+import { initializeRoutes, root, __dirname } from './shared.js'
 import { debounce } from 'lodash-es'
 import { RenderRouteOptions } from './lib/view/render.js'
+import { CleoConfig } from './cleoConfig.js'
 
-// TODO: dedupe this with build plugin
-async function initializeRoutes() {
-  // Create the initial includes files
-  // Find all the routes
-  let routeFilePaths = await globby([
-    root + '/routes/**/*.{ts,tsx,js,jsx}',
-    '!' + root + '/routes/**/_*.{ts,tsx,js,jsx}',
-  ])
-  let { routeOptionsString, routeDefinitionsString } = createRouteIncludes(routeFilePaths, root)
-  await includeCleo({ routeDefinitions: routeDefinitionsString, routeOptions: routeOptionsString })
-
-  return routeFilePaths
-}
-
-export async function createDevServer(vite: ViteDevServer) {
+export async function createDevServer(vite: ViteDevServer, cleoConfig: CleoConfig) {
   let app: FastifyInstance
   let restart: Awaited<ReturnType<typeof start>>['restart']
   let listen: Awaited<ReturnType<typeof start>>['listen']
@@ -115,21 +92,12 @@ export async function createDevServer(vite: ViteDevServer) {
     return restartable.app.routing(req, res)
   })
 
-  // TODO: Merge with user provided Fastify opts
   const restartableOpts = {
     runAfterLoad,
     app: appLoader,
     ssrFixStacktrace: vite.ssrFixStacktrace,
-    logger: {
-      transport: {
-        target: 'pino-pretty',
-        options: {
-          translateTime: 'HH:MM:ss Z',
-          ignore: 'pid,hostname',
-        },
-      },
-    },
-    ...fastifyOpts,
+
+    ...(cleoConfig.fastifyOpts ?? {}),
   }
 
   // @ts-ignore

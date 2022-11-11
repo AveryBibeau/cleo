@@ -1,35 +1,24 @@
 import fs from 'fs-extra'
 import path from 'path'
-import { fileURLToPath } from 'url'
-
-// TODO: Move to shared
-// The project root
-const root = process.cwd()
-
-// The library root
-// @ts-ignore
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
+import { root, __dirname } from '../shared.js'
 
 interface IncludeCleoOpts {
   routeOptions: string
   routeDefinitions: string
 }
 
+// Move ./includes to project .cleo directory
 export async function includeCleo(opts: IncludeCleoOpts) {
   await fs.ensureDir(path.resolve(root, './.cleo/@types/'))
 
-  // Move ./includes to project .cleo directory
-  // await fs.copy(path.resolve(__dirname, '../../src/includes/index.ts'), path.resolve(root, './.cleo/index.ts'), {
-  //   overwrite: true,
-  // })
   await fs.copy(
-    path.resolve(__dirname, '../../src/includes/@types/index.d.ts'),
+    path.resolve(__dirname, '../src/includes/@types/index.d.ts'),
     path.resolve(root, './.cleo/@types/index.d.ts'),
     { overwrite: true }
   )
 
   // Read the index file
-  let indexFileData = await fs.readFile(path.resolve(__dirname, '../../src/includes/index.ts'))
+  let indexFileData = await fs.readFile(path.resolve(__dirname, '../src/includes/index.ts'))
   let fileContents = indexFileData.toString()
 
   let rewrittenContents = fileContents

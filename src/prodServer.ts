@@ -3,18 +3,26 @@ import path from 'path'
 import FastifyStatic, { FastifyStaticOptions } from '@fastify/static'
 import { FastifyReply, fastify } from 'fastify'
 
-import { fastifyOpts } from './shared.js'
 import { createApp } from './app.js'
 import { renderRoute, RenderRouteOptions } from './lib/view/render.js'
 import { parseFilePathToRoutePath, routeMethods } from './lib/parseRoutes.js'
 import { ServerResponse } from 'http'
+import { UserConfig } from 'vite'
+import { CleoConfig } from './cleoConfig.js'
 
-export async function createServer() {
+export async function createServer(fastifyOpts = {}) {
   const root = process.cwd()
   // Find all the routes
+  // Note: Patterns here have to passed as literals (https://vitejs.dev/guide/features.html#glob-import-caveats)
+  // Should match patterns found in ./shared.ts
   let routeModules = await import.meta.glob(['/routes/**/*.{ts,tsx,js,jsx}', '!/routes/**/_*.{ts,tsx,js,jsx}'])
 
-  let app = fastify(fastifyOpts)
+  // @ts-ignore
+  let viteConfigModule = await import('/vite.config.ts')
+  let resolvedViteConfig = (await viteConfigModule.default()) as UserConfig
+  let cleoConfig = (resolvedViteConfig.cleoConfig as CleoConfig) ?? {}
+
+  let app = fastify(cleoConfig.fastifyOpts ?? {})
 
   await createApp(app, {})
 
