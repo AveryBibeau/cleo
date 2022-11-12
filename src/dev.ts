@@ -4,11 +4,25 @@ import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
 import { start } from '@fastify/restartable'
 import type { ViteDevServer } from 'vite'
 
-import { parseFilePathToRoutePath, routeMethods } from './lib/parseRoutes.js'
-import { initializeRoutes, root, __dirname } from './shared.js'
+import { createRouteIncludes, parseFilePathToRoutePath, routeMethods } from './lib/parseRoutes.js'
+import { root, __dirname } from './shared.js'
 import { debounce } from 'lodash-es'
 import { RenderRouteOptions } from './lib/view/render.js'
 import { CleoConfig } from './cleoConfig.js'
+import { globby } from 'globby'
+import { includeCleo } from './lib/includes.js'
+
+const routesGlob = [`${root}/routes/**/*.{ts,tsx,js,jsx}`, `!${root}/routes/**/_*.{ts,tsx,js,jsx}`]
+
+async function initializeRoutes() {
+  // Create the initial includes files
+  // Find all the routes
+  let routeFilePaths = await globby(routesGlob)
+  let { routeOptionsString, routeDefinitionsString } = createRouteIncludes(routeFilePaths, root)
+  await includeCleo({ routeDefinitions: routeDefinitionsString, routeOptions: routeOptionsString })
+
+  return routeFilePaths
+}
 
 export async function createDevServer(vite: ViteDevServer, cleoConfig: CleoConfig) {
   let app: FastifyInstance
@@ -36,7 +50,7 @@ export async function createDevServer(vite: ViteDevServer, cleoConfig: CleoConfi
   /**
    * This will be called every time the Fastify server is restarted due to route file changes
    */
-  async function runAfterLoad(app: FastifyInstance, vite: ViteDevServer) {
+  async function runAfterLoad(app: FastifyInstance) {
     // Reload the route files and update the includes files
     let routeFilePaths = await initializeRoutes()
 
