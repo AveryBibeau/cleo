@@ -3,7 +3,7 @@ import fastify, { FastifyInstance, FastifyReply } from 'fastify'
 import { renderRoute, renderComponent, RenderRouteOptions, RenderFragmentOptions } from './lib/view/render.js'
 import { ErrorLayout } from './layouts/error.js'
 
-import { __dirname, isDev } from './lib/util.js'
+import { __dirname, isDev } from './shared.js'
 import type { h } from 'preact'
 
 export async function createApp(app: FastifyInstance, opts: any) {

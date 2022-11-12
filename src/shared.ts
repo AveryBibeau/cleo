@@ -12,6 +12,7 @@ export const root = process.cwd()
 export const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 export const includesPath = './.cleo'
+export const isDev = process.env.NODE_ENV === 'development'
 
 export function baseViteConfig(): UserConfig {
   const root = process.cwd()

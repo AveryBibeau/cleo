@@ -11,6 +11,7 @@ export function parseFilePathToRoutePath(path: string, dir: string, keepIndex: b
   const wildCardRouteRegex = /\[\.\.\..+\]/gu
   const multipleParamRegex = /\]-\[/gu
   const routeParamRegex = /\]\/\[/gu
+  const parensIndexRegex = /\/\((.*)\)/gu
 
   // Clean file extensions like .tsx
   const withoutExtension = filePath.replace(extensionRegex, '')
@@ -29,10 +30,13 @@ export function parseFilePathToRoutePath(path: string, dir: string, keepIndex: b
   // Replace /index to squash index routes
   const withoutIndex = withMultiParams.replace('/index', '')
 
-  // In the case that withoutIndex is an empty string, it should just be / (the root route)
-  if (withoutIndex === '') return '/'
+  // Squash parenthetical index routes, i.e. /posts/(posts).tsx => /posts
+  const withoutParens = withoutIndex.replace(parensIndexRegex, '')
 
-  return withoutIndex
+  // In the case that withoutIndex is an empty string, it should just be / (the root route)
+  if (withoutParens === '') return '/'
+
+  return withoutParens
 }
 
 export function parseRoutePathToName(path: string): string {

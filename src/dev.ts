@@ -36,7 +36,7 @@ export async function createDevServer(vite: ViteDevServer, cleoConfig: CleoConfi
   /**
    * This will be called every time the Fastify server is restarted due to route file changes
    */
-  async function runAfterLoad(app: FastifyInstance) {
+  async function runAfterLoad(app: FastifyInstance, vite: ViteDevServer) {
     // Reload the route files and update the includes files
     let routeFilePaths = await initializeRoutes()
 
@@ -87,6 +87,7 @@ export async function createDevServer(vite: ViteDevServer, cleoConfig: CleoConfi
     })
   }
 
+  // Pass requests to the Vite dev server through to the Fastify server
   vite.middlewares.use(async function (req, res, next) {
     await restartable.app.ready()
     return restartable.app.routing(req, res)
