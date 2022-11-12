@@ -96,16 +96,9 @@ export async function createDevServer(vite: ViteDevServer, cleoConfig: CleoConfi
           return this.html(result)
         }
       }
-
       return
     })
   }
-
-  // Pass requests to the Vite dev server through to the Fastify server
-  vite.middlewares.use(async function (req, res, next) {
-    await restartable.app.ready()
-    return restartable.app.routing(req, res)
-  })
 
   const restartableOpts = {
     runAfterLoad,
@@ -117,6 +110,12 @@ export async function createDevServer(vite: ViteDevServer, cleoConfig: CleoConfi
 
   // @ts-ignore
   let restartable = await start(restartableOpts)
+
+  // Pass requests to the Vite dev server through to the Fastify server
+  vite.middlewares.use(async function (req, res, next) {
+    await restartable.app.ready()
+    return restartable.app.routing(req, res)
+  })
 
   restart = restartable.restart
   listen = restartable.listen

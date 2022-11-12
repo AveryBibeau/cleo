@@ -142,7 +142,7 @@ export async function cleo(): Promise<Plugin[]> {
         {
           preact: ['h', 'Fragment'],
           '@sinclair/typebox': [['Type', 'TypeBox']],
-          '#app': ['createRequestHandler', 'getHref'],
+          '#app': ['createRequestHandler', 'getHref', 'Helmet'],
         },
       ],
       // TODO: This fails if included in the ./.cleo/@types directory if the directory doesn't exist yet
@@ -153,3 +153,4 @@ export async function cleo(): Promise<Plugin[]> {
 }
 
 export { getHref as originalGetHref, createRouterConfig } from '../lib/routes.js'
+export { Helmet } from 'react-helmet'

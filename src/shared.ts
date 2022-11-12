@@ -38,7 +38,9 @@ export function baseViteConfig(): UserConfig {
     ssr: {
       external: ['@ordinal/cleo'],
       target: 'node',
-      optimizeDeps: { include: ['preact', 'preact/hooks'] },
+      optimizeDeps: {
+        include: ['preact', 'preact/hooks'],
+      },
     },
 
     server: {
@@ -48,6 +50,11 @@ export function baseViteConfig(): UserConfig {
       alias: {
         '##': resolve(root, './'),
         '#app': resolve(root, './.cleo/index.ts'),
+        react: 'preact/compat',
+        'react-dom/test-utils': 'preact/test-utils',
+        'react-dom': 'preact/compat',
+        'react/jsx-runtime': 'preact/jsx-runtime',
+        'react-helmet': resolve(root, './.cleo/index.ts'),
       },
       dedupe: ['preact'],
     },

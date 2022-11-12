@@ -1,13 +1,12 @@
 import { render } from 'preact-render-to-string'
 import { h, ComponentType, FunctionComponent, ComponentChildren } from 'preact'
-import { helmet, HeadProps } from './helmet.js'
 import { DefaultLayout, DefaultLayoutProps } from '../../layouts/default.js'
 import { FastifyReply, FastifyRequest } from 'fastify'
+import { Helmet } from 'react-helmet'
 
 type SharedRenderRouteOptions<P = {}> = {
   component: ComponentType<P>
   props?: P & { children?: ComponentChildren; addClass?: string }
-  head?: HeadProps
   presession?: boolean
 }
 
@@ -38,7 +37,7 @@ export async function renderRoute<P extends h.JSX.IntrinsicAttributes, L>(
 
   let layout = options.layout === undefined ? DefaultLayout : options.layout
 
-  return renderPage<P, L>(layout, options.component, propsToUse, layoutPropsToUse, options.head ?? {}, template)
+  return renderPage<P, L>(layout, options.component, propsToUse, layoutPropsToUse, template)
 }
 
 export function renderComponent<P extends h.JSX.IntrinsicAttributes>(
@@ -56,7 +55,6 @@ function renderPage<P extends h.JSX.IntrinsicAttributes, L>(
   page: ComponentType<P>,
   props: P,
   layoutProps: L | DefaultLayoutProps,
-  head: HeadProps,
   template: string
 ) {
   const Layout = layout
@@ -68,7 +66,19 @@ function renderPage<P extends h.JSX.IntrinsicAttributes, L>(
     </Layout>
   )
 
-  const headTags = render(helmet(head))
+  const headParts = Helmet.renderStatic()
+
+  const headTags = `
+  ${headParts.base.toString()}
+  ${headParts.bodyAttributes.toString()}
+  ${headParts.htmlAttributes.toString()}
+  ${headParts.link.toString()}
+  ${headParts.meta.toString()}
+  ${headParts.noscript.toString()}
+  ${headParts.script.toString()}
+  ${headParts.style.toString()}
+  ${headParts.title.toString()}
+  `.replace(/data-react-helmet="true"/g, '')
 
   const html = template.replace(`<!--ssr-outlet-->`, markup).replace('<!--ssr-head-->', headTags ?? '')
 

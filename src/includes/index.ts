@@ -4,7 +4,7 @@ import { RawRequestDefaultExpression, RawServerDefault } from 'fastify'
 import { RouteGenericInterface } from 'fastify'
 import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox'
 
-import { originalGetHref, createRouterConfig } from '@ordinal/cleo'
+import { originalGetHref, createRouterConfig, Helmet } from '@ordinal/cleo'
 
 export type RequestHandler<S extends FastifySchema = {}> = RouteShorthandOptionsWithHandler<
   RawServerDefault,
@@ -30,3 +30,5 @@ export type GetHrefConfig = RouteOptions & {
 export function getHref(config: GetHrefConfig) {
   return originalGetHref(config, routeConfig)
 }
+
+export { Helmet }

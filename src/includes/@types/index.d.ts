@@ -1,4 +1,4 @@
-import { RenderRouteOptions, RenderFragmentOptions, CleoConfig } from '@ordinal/cleo'
+import { RenderRouteOptions, RenderFragmentOptions, CleoConfig, Helmet } from '@ordinal/cleo'
 
 declare module 'fastify' {
   interface FastifyReply {

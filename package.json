@@ -1,6 +1,6 @@
 {
   "name": "@ordinal/cleo",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch"
@@ -27,6 +27,9 @@
     "path-to-regexp": "^6.2.1",
     "preact": "^10.11.2",
     "preact-render-to-string": "^5.2.4",
+    "react": "npm:@preact/compat",
+    "react-dom": "npm:@preact/compat",
+    "react-helmet": "^6.1.0",
     "typescript": "^4.8.3",
     "unplugin-auto-import": "^0.11.4",
     "vite": "^3.2.2",
@@ -48,5 +51,8 @@
   "bugs": {
     "url": "https://github.com/ordinal-studio/cleo/issues"
   },
-  "homepage": "https://github.com/ordinal-studio/cleo#readme"
+  "homepage": "https://github.com/ordinal-studio/cleo#readme",
+  "devDependencies": {
+    "@types/react-helmet": "^6.1.5"
+  }
 }

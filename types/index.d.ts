@@ -3,6 +3,7 @@ export { RouteInfo } from '../src/lib/routes'
 export { getHref as originalGetHref, createRouterConfig } from '../src/lib/routes'
 export { cleo } from '../src/exports/index'
 export { defineCleoConfig, CleoConfig } from '../src/cleoConfig'
+export { Helmet } from 'react-helmet'
 
 declare module 'fastify' {
   interface FastifyReply {
