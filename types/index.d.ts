@@ -4,6 +4,7 @@ export { getHref as originalGetHref, createRouterConfig } from '../src/lib/route
 export { cleo } from '../src/exports/index'
 export { defineCleoConfig, CleoConfig } from '../src/cleoConfig'
 export { Helmet } from 'react-helmet'
+export { DefaultLayoutProps } from '../src/layouts/default'
 
 declare module 'fastify' {
   interface FastifyReply {

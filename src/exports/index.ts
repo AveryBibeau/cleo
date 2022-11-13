@@ -129,6 +129,7 @@ export async function cleo(): Promise<Plugin[]> {
 
       // Creates the Vite dev server
       async configureServer(vite) {
+        process.env.NODE_ENV = 'development'
         return async () => {
           await createDevServer(vite, cleoConfig as CleoConfig)
         }

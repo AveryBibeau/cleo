@@ -4,7 +4,7 @@ import { renderRoute, renderComponent, RenderRouteOptions, RenderFragmentOptions
 import { ErrorLayout } from './layouts/error.js'
 
 import { __dirname, isDev } from './shared.js'
-import type { h } from 'preact'
+import { h } from 'preact'
 
 export async function createApp(app: FastifyInstance, opts: any) {
   /**
@@ -43,27 +43,51 @@ export async function createApp(app: FastifyInstance, opts: any) {
     return this.html(result)
   })
 
-  // Custom error handler for rendering error layout
-  app.setErrorHandler(async function (error, request, reply) {
-    isDev && opts?.ssrFixStacktrace(error)
+  async function errorHandler(
+    error: fastify.FastifyError,
+    request: fastify.FastifyRequest,
+    reply: fastify.FastifyReply
+  ) {
     // Log error
-    this.log.error(error)
+    request.log.error(error)
+
+    let errorLayoutToUse = ErrorLayout
+    try {
+      // @ts-ignore
+      let userErrorLayout = await import('/layouts/error.tsx')
+      if (userErrorLayout.default) {
+        console.warn('using user defined error layout')
+        errorLayoutToUse = userErrorLayout.default
+      }
+    } catch (e) {
+      // Noop
+    }
+
     /**
      * Try sending error response, fallback catch for errors thrown in renderRoute
      */
     try {
-      // TODO: Load error layout or use fallback
       await reply.status(error.statusCode ?? 500).render({
-        component: ErrorLayout,
+        component: errorLayoutToUse,
         head: { title: `${error.statusCode} Error` },
         props: { error },
       })
     } catch (e) {
-      this.log.error(error)
+      request.log.error(error)
       let errorMessage = 'There was an error processing your request. Please try again later.'
       if (isDev && error.stack) errorMessage += '\n\n' + error.stack
       return reply.status(500).send(errorMessage)
     }
+  }
+
+  // Custom error handler for rendering error layout
+  app.setErrorHandler(async function (error, request, reply) {
+    isDev && opts?.ssrFixStacktrace(error)
+    return await errorHandler(error, request, reply)
+  })
+
+  app.setNotFoundHandler(async function (request, reply) {
+    return await errorHandler({ ...fastify.default.errorCodes.FST_ERR_NOT_FOUND(), stack: undefined }, request, reply)
   })
 
   app.get('/healthz', function (req, res) {

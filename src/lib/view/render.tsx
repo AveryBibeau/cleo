@@ -35,9 +35,20 @@ export async function renderRoute<P extends h.JSX.IntrinsicAttributes, L>(
   let propsToUse = options.props ?? ({} as P)
   let layoutPropsToUse = options.layoutProps ?? ({} as L)
 
-  let layout = options.layout === undefined ? DefaultLayout : options.layout
+  let defaultLayoutToUse = DefaultLayout
+  try {
+    // @ts-ignore
+    let userDefaultLayout = await import('/layouts/default.tsx')
+    if (userDefaultLayout.default) {
+      defaultLayoutToUse = userDefaultLayout.default
+    }
+  } catch (e) {
+    // Noop
+  }
 
-  return renderPage<P, L>(layout, options.component, propsToUse, layoutPropsToUse, template)
+  let layout = options.layout === undefined ? defaultLayoutToUse : options.layout
+
+  return renderPage<P, L>(layout as ComponentType<L>, options.component, propsToUse, layoutPropsToUse as L, template)
 }
 
 export function renderComponent<P extends h.JSX.IntrinsicAttributes>(
@@ -51,10 +62,10 @@ export function renderComponent<P extends h.JSX.IntrinsicAttributes>(
 }
 
 function renderPage<P extends h.JSX.IntrinsicAttributes, L>(
-  layout: ComponentType<L> | FunctionComponent<DefaultLayoutProps>,
+  layout: ComponentType<L>,
   page: ComponentType<P>,
   props: P,
-  layoutProps: L | DefaultLayoutProps,
+  layoutProps: L,
   template: string
 ) {
   const Layout = layout
