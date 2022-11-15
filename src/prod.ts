@@ -1,9 +1,11 @@
 import { createServer } from './prodServer.js'
 
-createServer().then((app) => {
+createServer().then(async ({ app, port, host }) => {
   // TODO: Add customizeable port/host
-  app.listen({
-    port: 3000,
-    host: '0.0.0.0',
+  await app.listen({
+    port,
+    host,
   })
+
+  console.info(`Server listening on ${host}:${port}`)
 })

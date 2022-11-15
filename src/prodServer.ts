@@ -65,5 +65,9 @@ export async function createServer(fastifyOpts = {}) {
     return this.html(result)
   })
 
-  return app
+  // TODO: Confirm behavior with vite.resolveHostname - https://github.com/vitejs/vite/blob/0a699856b248116632c1ac18515c0a5c7cf3d1db/packages/vite/src/node/utils.ts#L820-L846
+  let resolvedHost = resolvedViteConfig.server?.host ?? 'localhost'
+  resolvedHost = resolvedHost === true ? '0.0.0.0' : resolvedHost === false ? 'localhost' : resolvedHost
+
+  return { app, port: resolvedViteConfig.server?.port ?? 5173, host: resolvedHost }
 }

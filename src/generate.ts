@@ -10,10 +10,10 @@ import { CleoConfig } from './cleoConfig.js'
 const root = process.cwd()
 
 export async function generate(cleoConfig: CleoConfig) {
-  let app = await createServer()
+  let { app, port, host } = await createServer()
   await app.listen({
-    port: 3000,
-    host: '0.0.0.0',
+    port,
+    host,
   })
 
   let routeFilePaths = await globby([

@@ -1,6 +1,6 @@
 {
   "name": "@ordinal/cleo",
-  "version": "0.1.9",
+  "version": "0.1.10",
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch"
