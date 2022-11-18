@@ -1,5 +1,6 @@
 import { inspect } from 'util'
 import { createRouterConfig } from './routes.js'
+import fs from 'fs-extra'
 
 export const routeMethods = ['delete', 'get', 'head', 'patch', 'post', 'put', 'options']
 
@@ -52,12 +53,30 @@ export function parseRoutePathToName(path: string): string {
   return path
 }
 
-export function createRouteIncludes(routeFilePaths: string[], root: string) {
-  let routePaths = routeFilePaths.map((filePath) => parseFilePathToRoutePath(filePath, root))
-  let routeDefinitions = routePaths.map((path) => ({
-    name: parseRoutePathToName(path),
-    path,
-  }))
+/**
+ * Matches exported route names in route module files. The name cannot be extracted from
+ * an imported module since this happens during the Vite plugin (buildStart) lifecycle.
+ */
+// TODO: Validate valid syntax, e.g. white space
+// NOTE: Not matching ` characters since the module isn't evaluated
+const routeNameMatcher = /export (?:const|let) name\s*=\s*(?:'|")(.*)(?:'|")/g
+
+export async function createRouteIncludes(routeFilePaths: string[], root: string) {
+  let routeDefinitions = routeFilePaths.map((filePath) => {
+    const routePath = parseFilePathToRoutePath(filePath, root)
+
+    const routeModule = fs.readFileSync(filePath).toString()
+
+    let routeNameMatch = routeNameMatcher.exec(routeModule)
+    let routeName: string
+    if (routeNameMatch?.[1]) routeName = routeNameMatch[1]
+    else routeName = parseRoutePathToName(routePath)
+
+    return {
+      name: routeName,
+      path: routePath,
+    }
+  })
 
   let routeConfig = createRouterConfig(routeDefinitions)
 

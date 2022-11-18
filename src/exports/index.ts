@@ -115,7 +115,7 @@ export async function cleo(opts: CleoPluginOpts = {}): Promise<Plugin[]> {
             '!' + root + '/routes/**/_*.{ts,tsx,js,jsx}',
           ])
 
-          let { routeOptionsString, routeDefinitionsString } = createRouteIncludes(routeFilePaths, root)
+          let { routeOptionsString, routeDefinitionsString } = await createRouteIncludes(routeFilePaths, root)
           await includeCleo({ routeDefinitions: routeDefinitionsString, routeOptions: routeOptionsString })
         }
       },

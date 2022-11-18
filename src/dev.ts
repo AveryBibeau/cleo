@@ -18,7 +18,7 @@ async function initializeRoutes() {
   // Create the initial includes files
   // Find all the routes
   let routeFilePaths = await globby(routesGlob)
-  let { routeOptionsString, routeDefinitionsString } = createRouteIncludes(routeFilePaths, root)
+  let { routeOptionsString, routeDefinitionsString } = await createRouteIncludes(routeFilePaths, root)
   await includeCleo({ routeDefinitions: routeDefinitionsString, routeOptions: routeOptionsString })
 
   return routeFilePaths
