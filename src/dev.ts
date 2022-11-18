@@ -2,13 +2,13 @@ import fs from 'fs'
 import path from 'path'
 import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
 import { start } from '@fastify/restartable'
-import type { ViteDevServer } from 'vite'
+import type { ConfigEnv, ViteDevServer } from 'vite'
 
 import { createRouteIncludes, parseFilePathToRoutePath, routeMethods } from './lib/parseRoutes.js'
 import { root, __dirname } from './shared.js'
 import { debounce } from 'lodash-es'
 import { RenderRouteOptions } from './lib/view/render.js'
-import { CleoConfig } from './cleoConfig.js'
+import { CleoConfig, DefineCleoConfigResolver } from './cleoConfig.js'
 import { globby } from 'globby'
 import { includeCleo } from './lib/includes.js'
 
@@ -24,10 +24,16 @@ async function initializeRoutes() {
   return routeFilePaths
 }
 
-export async function createDevServer(vite: ViteDevServer, cleoConfig: CleoConfig) {
+export async function createDevServer(vite: ViteDevServer, configEnv: ConfigEnv) {
   let app: FastifyInstance
   let restart: Awaited<ReturnType<typeof start>>['restart']
   let listen: Awaited<ReturnType<typeof start>>['listen']
+
+  // Load the Cleo config
+  let cleoConfigModule = (await vite.ssrLoadModule('/cleo.config.ts')).default as DefineCleoConfigResolver | undefined
+  let cleoConfig: CleoConfig
+  if (typeof cleoConfigModule === 'function') cleoConfig = await cleoConfigModule({ isDev: false, prerender: false })
+  else cleoConfig = cleoConfigModule ?? {}
 
   const restartFastify = debounce(async function (file: string) {
     if (!file.startsWith(root + '/routes/')) return
@@ -36,6 +42,7 @@ export async function createDevServer(vite: ViteDevServer, cleoConfig: CleoConfi
     console.timeEnd('Rebooting Fastify server')
   }, 50)
 
+  // TODO: Restart server on other file changes, e.g. cleo.config.ts, maybe vite.config.ts?
   /**
    * Note: Unlink/add are triggered simultaneously when renaming a file leading to
    * two restarts, so the restart function here is debounced
@@ -54,6 +61,11 @@ export async function createDevServer(vite: ViteDevServer, cleoConfig: CleoConfi
     // Reload the route files and update the includes files
     let routeFilePaths = await initializeRoutes()
 
+    // Run all fastify hooks on the app instance
+    for (let hook of cleoConfig?.hooks?.fastifyHooks ?? []) {
+      await hook(app, { isDev: false, prerender: false })
+    }
+
     // Render helper is called dynamically
     // TODO: dynamically add renderFragment too?
     app.decorateReply('render', null)
@@ -61,24 +73,29 @@ export async function createDevServer(vite: ViteDevServer, cleoConfig: CleoConfi
     for (let i = 0; i < routeFilePaths.length; i++) {
       let filePath = routeFilePaths[i]
       // Load the route file
-      await vite.ssrLoadModule(filePath).then((module) => {
-        // Transform the file path to a Fastify route path config
-        let path = parseFilePathToRoutePath(filePath, root)
-
-        routeMethods.forEach((method) => {
-          if (module[method]) {
-            // TODO: Add dynamic error handler/other functions?
-            let dynamicHandler = async function (req: FastifyRequest, res: FastifyReply) {
-              const newModule = await vite.ssrLoadModule(filePath)
-              const newHandler = newModule[method].handler
-              return await newHandler(req, res)
-            }
-
-            // @ts-ignore
-            app[method](path, { ...module[method], handler: dynamicHandler })
+      let module = await vite.ssrLoadModule(filePath)
+      // Transform the file path to a Fastify route path config
+      let path = parseFilePathToRoutePath(filePath, root)
+      for (let method of routeMethods) {
+        if (module[method]) {
+          // TODO: Add dynamic error handler/other functions?
+          let dynamicHandler = async function (req: FastifyRequest, res: FastifyReply) {
+            const newModule = await vite.ssrLoadModule(filePath)
+            let newHandler
+            if (typeof newModule[method] === 'function') newHandler = (await newModule[method](app)).handler
+            else newHandler = newModule[method].handler
+            // const newHandler = newModule[method].handler
+            return await newHandler(req, res)
           }
-        })
-      })
+
+          let resolvedMethod
+          if (typeof module[method] === 'function') resolvedMethod = await module[method](app)
+          else resolvedMethod = module[method]
+
+          // @ts-ignore
+          app[method](path, { ...resolvedMethod, handler: dynamicHandler })
+        }
+      }
     }
 
     app.addHook('onRequest', async (req, reply) => {

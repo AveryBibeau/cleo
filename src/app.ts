@@ -7,31 +7,6 @@ import { __dirname, isDev } from './shared.js'
 import { h } from 'preact'
 
 export async function createApp(app: FastifyInstance, opts: any) {
-  /**
-   * Add custom logging to filter logs for static resources in dev (/public/ shouldn't be served the app
-   * in production)
-   */
-  // app.addHook('onRequest', (req, reply, done) => {
-  //   // Ignore requests without a registered route (static files)
-  //   if (!req.routerPath) return done()
-  //   reply.startTime = performance.now()
-  //   req.log.info({ url: req.raw.url, method: req.method }, '[Request]')
-  //   done()
-  // })
-  // app.addHook('onResponse', (req, reply, done) => {
-  //   // Ignore requests without a registered route (static files)
-  //   if (!req.routerPath) return done()
-  //   req.log.info(
-  //     {
-  //       url: req.raw.url,
-  //       statusCode: reply.raw.statusCode,
-  //       durationMs: performance.now() - reply.startTime,
-  //     },
-  //     '[Reply]'
-  //   )
-  //   done()
-  // })
-
   app.decorateReply('html', function (this: FastifyReply, content: string) {
     return this.type('text/html; charset=utf-8').send(content)
   })
@@ -56,7 +31,6 @@ export async function createApp(app: FastifyInstance, opts: any) {
       // @ts-ignore
       let userErrorLayout = await import('/layouts/error.tsx')
       if (userErrorLayout.default) {
-        console.warn('using user defined error layout')
         errorLayoutToUse = userErrorLayout.default
       }
     } catch (e) {

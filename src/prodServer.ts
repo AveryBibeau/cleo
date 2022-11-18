@@ -7,10 +7,10 @@ import { createApp } from './app.js'
 import { renderRoute, RenderRouteOptions } from './lib/view/render.js'
 import { parseFilePathToRoutePath, routeMethods } from './lib/parseRoutes.js'
 import { ServerResponse } from 'http'
+import { CleoConfig, CleoConfigCtx, DefineCleoConfigResolver } from './cleoConfig.js'
 import { UserConfig } from 'vite'
-import { CleoConfig } from './cleoConfig.js'
 
-export async function createServer(fastifyOpts = {}) {
+export async function createServer(ctx: CleoConfigCtx) {
   const root = process.cwd()
   // Find all the routes
   // Note: Patterns here have to passed as literals (https://vitejs.dev/guide/features.html#glob-import-caveats)
@@ -20,23 +20,37 @@ export async function createServer(fastifyOpts = {}) {
   // @ts-ignore
   let viteConfigModule = await import('/vite.config.ts')
   let resolvedViteConfig = (await viteConfigModule.default()) as UserConfig
-  let cleoConfig = (resolvedViteConfig.cleoConfig as CleoConfig) ?? {}
+
+  // Load the Cleo config
+  // @ts-ignore
+  let cleoConfigModule = (await import('/cleo.config.ts')).default as DefineCleoConfigResolver | undefined
+  let cleoConfig: CleoConfig
+  if (typeof cleoConfigModule === 'function') cleoConfig = await cleoConfigModule(ctx)
+  else cleoConfig = cleoConfigModule ?? {}
 
   let app = fastify(cleoConfig.fastifyOpts ?? {})
 
   await createApp(app, {})
 
+  for (let hook of cleoConfig?.hooks?.fastifyHooks ?? []) {
+    await hook(app, ctx)
+  }
+
   for (const filePath in routeModules) {
-    let module = await routeModules[filePath]()
+    let module = (await routeModules[filePath]()) as any
     let path = parseFilePathToRoutePath(filePath, root)
 
-    routeMethods.forEach((method: string) => {
+    for (let method of routeMethods) {
       // @ts-ignore
       if (module[method]) {
+        let resolvedMethod
+        if (typeof module[method] === 'function') resolvedMethod = await module[method](app)
+        else resolvedMethod = module[method]
+
         // @ts-ignore
-        app[method](path, { ...module[method] })
+        app[method](path, { ...resolvedMethod })
       }
-    })
+    }
   }
 
   const PUBLIC_DIR = path.join(root, '/dist/client')

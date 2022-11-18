@@ -4,13 +4,20 @@ import fs from 'fs-extra'
 import { parseFilePathToRoutePath } from './lib/parseRoutes.js'
 import { createServer } from './prodServer.js'
 import fetch from 'node-fetch'
-import { CleoConfig } from './cleoConfig.js'
+import { CleoConfig, DefineCleoConfigResolver } from './cleoConfig.js'
 
 // The project root
 const root = process.cwd()
 
-export async function generate(cleoConfig: CleoConfig) {
-  let { app, port, host } = await createServer()
+export async function generate() {
+  // Load the Cleo config
+  // @ts-ignore
+  let cleoConfigModule = (await import('/cleo.config.ts')).default as DefineCleoConfigResolver | undefined
+  let cleoConfig: CleoConfig
+  if (typeof cleoConfigModule === 'function') cleoConfig = await cleoConfigModule({ isDev: false, prerender: false })
+  else cleoConfig = cleoConfigModule ?? {}
+
+  let { app, port, host } = await createServer({ isDev: false, prerender: true })
   await app.listen({
     port,
     host,
@@ -22,7 +29,7 @@ export async function generate(cleoConfig: CleoConfig) {
   ])
 
   async function generatePath(routePath: string, resultFilePath: string) {
-    console.log('Generating route', routePath)
+    console.info('Generating route', routePath)
     let res = await fetch(`http://localhost:3000${routePath}`)
 
     let htmlResponse = await res.text()

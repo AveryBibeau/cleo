@@ -16,6 +16,10 @@ import fs from 'fs-extra'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const root = process.cwd()
 
+export interface CleoPluginOpts {
+  prerender?: boolean
+}
+
 export function ensureCleoDirs(): Plugin {
   return {
     name: 'vite-plugin-cleo:ensure-cleo-dirs',
@@ -27,18 +31,13 @@ export function ensureCleoDirs(): Plugin {
   }
 }
 
-export async function chainBuild(): Promise<Plugin> {
+export async function chainBuild(opts: CleoPluginOpts): Promise<Plugin> {
   let viteConfig: ResolvedConfig
-  let cleoConfig: CleoConfig
-  let isStatic: boolean
 
   return {
     name: 'vite-plugin-cleo:ssr-build',
     apply: 'build',
-    async config(config, configEnv) {
-      cleoConfig = config.cleoConfig
-      isStatic = !!cleoConfig.generate
-    },
+    async config(config, configEnv) {},
     configResolved(config) {
       viteConfig = config
     },
@@ -53,21 +52,19 @@ export async function chainBuild(): Promise<Plugin> {
           },
         })
 
-        if (isStatic) {
+        if (opts.prerender) {
           let generateModule = await import(path.resolve(root, './dist/server/generate.js'))
-          await generateModule.generate(cleoConfig)
+          await generateModule.generate()
         }
       }
     },
   }
 }
 
-export async function cleo(): Promise<Plugin[]> {
+export async function cleo(opts: CleoPluginOpts = {}): Promise<Plugin[]> {
   let viteConfig: ResolvedConfig
   let viteConfigEnv: ConfigEnv
   let isBuild: boolean
-  let isStatic: boolean
-  let cleoConfig: CleoConfig
 
   return [
     ensureCleoDirs(),
@@ -77,12 +74,8 @@ export async function cleo(): Promise<Plugin[]> {
        * @see https://vitejs.dev/guide/api-plugin.html#config
        */
       async config(config, configEnv) {
-        cleoConfig = config.cleoConfig
-
         viteConfigEnv = configEnv
         isBuild = configEnv.command === 'build'
-
-        isStatic = !!cleoConfig.generate
 
         let baseConfig = mergeConfig(config, baseViteConfig())
         // Initial (client) build
@@ -99,7 +92,7 @@ export async function cleo(): Promise<Plugin[]> {
           return mergeConfig(baseConfig, {
             build: {
               sourcemap: true,
-              ssr: isStatic ? path.resolve(__dirname, '../generate.js') : path.resolve(__dirname, '../prod.js'),
+              ssr: opts.prerender ? path.resolve(__dirname, '../generate.js') : path.resolve(__dirname, '../prod.js'),
               outDir: path.resolve(root, './dist/server'),
               copyPublicDir: false,
             },
@@ -131,7 +124,7 @@ export async function cleo(): Promise<Plugin[]> {
       async configureServer(vite) {
         process.env.NODE_ENV = 'development'
         return async () => {
-          await createDevServer(vite, cleoConfig as CleoConfig)
+          await createDevServer(vite, viteConfigEnv)
         }
       },
     },
@@ -149,9 +142,10 @@ export async function cleo(): Promise<Plugin[]> {
       // TODO: This fails if included in the ./.cleo/@types directory if the directory doesn't exist yet
       dts: './.cleo/@types/auto-imports.d.ts',
     }),
-    chainBuild(),
+    chainBuild(opts),
   ]
 }
 
+export { defineCleoConfig } from '../cleoConfig.js'
 export { getHref as originalGetHref, createRouterConfig } from '../lib/routes.js'
 export { Helmet } from 'react-helmet'
