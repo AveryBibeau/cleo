@@ -1,21 +1,12 @@
 import fastify, { FastifyInstance, FastifyReply } from 'fastify'
 
-import { renderRoute, renderComponent, RenderRouteOptions, RenderFragmentOptions } from './lib/view/render.js'
 import { ErrorLayout } from './layouts/error.js'
 
 import { __dirname, isDev } from './shared.js'
-import { h } from 'preact'
 
 export async function createApp(app: FastifyInstance, opts: any) {
   app.decorateReply('html', function (this: FastifyReply, content: string) {
     return this.type('text/html; charset=utf-8').send(content)
-  })
-
-  app.decorateReply('renderFragment', async function <
-    P extends h.JSX.IntrinsicAttributes
-  >(this: FastifyReply, options: RenderFragmentOptions<P>) {
-    let result = await renderComponent<P>(options, this.request)
-    return this.html(result)
   })
 
   async function errorHandler(
@@ -43,7 +34,6 @@ export async function createApp(app: FastifyInstance, opts: any) {
     try {
       await reply.status(error.statusCode ?? 500).render({
         component: errorLayoutToUse,
-        head: { title: `${error.statusCode} Error` },
         props: { error },
       })
     } catch (e) {
@@ -70,6 +60,5 @@ export async function createApp(app: FastifyInstance, opts: any) {
 
   if (opts?.runAfterLoad) await opts.runAfterLoad(app)
 }
-export const renderRouteDefault = renderRoute
 
 export type AppInstance = ReturnType<typeof createApp>

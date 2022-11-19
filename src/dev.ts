@@ -25,6 +25,8 @@ async function initializeRoutes() {
 }
 
 export async function createDevServer(vite: ViteDevServer, configEnv: ConfigEnv) {
+  await initializeRoutes()
+
   let app: FastifyInstance
   let restart: Awaited<ReturnType<typeof start>>['restart']
   let listen: Awaited<ReturnType<typeof start>>['listen']
@@ -67,8 +69,8 @@ export async function createDevServer(vite: ViteDevServer, configEnv: ConfigEnv)
     }
 
     // Render helper is called dynamically
-    // TODO: dynamically add renderFragment too?
     app.decorateReply('render', null)
+    app.decorateReply('renderFragment', null)
 
     for (let i = 0; i < routeFilePaths.length; i++) {
       let filePath = routeFilePaths[i]
@@ -105,11 +107,17 @@ export async function createDevServer(vite: ViteDevServer, configEnv: ConfigEnv)
         let templateHtml = fs.readFileSync(path.resolve(root + '/index.html'), 'utf-8')
 
         let template = await vite.transformIndexHtml(url, templateHtml)
-        let { renderRoute } = await vite.ssrLoadModule(path.resolve(__dirname + '/lib/view/render.js'))
+        let { renderRoute, renderComponent } = await vite.ssrLoadModule(path.resolve(__dirname + '/lib/view/render.js'))
+
+        // @ts-ignore
+        reply.renderFragment = async function (this: FastifyReply, options: RenderRouteOptions) {
+          let result = await renderComponent(options, this.request, cleoConfig)
+          return this.html(result)
+        }
 
         // @ts-ignore
         reply.render = async function (this: FastifyReply, options: RenderRouteOptions) {
-          let result = await renderRoute(options, req, reply, template)
+          let result = await renderRoute(options, req, reply, template, cleoConfig)
           return this.html(result)
         }
       }

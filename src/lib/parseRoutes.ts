@@ -59,24 +59,24 @@ export function parseRoutePathToName(path: string): string {
  */
 // TODO: Validate valid syntax, e.g. white space
 // NOTE: Not matching ` characters since the module isn't evaluated
-const routeNameMatcher = /export (?:const|let) name\s*=\s*(?:'|")(.*)(?:'|")/g
+const routeNameMatcher = /export (?:const|let) name\s*=\s*(?:'|")(.*)(?:'|")/
 
 export async function createRouteIncludes(routeFilePaths: string[], root: string) {
-  let routeDefinitions = routeFilePaths.map((filePath) => {
+  let routeDefinitions: { name: string; path: string }[] = []
+  for (let filePath of routeFilePaths) {
     const routePath = parseFilePathToRoutePath(filePath, root)
 
-    const routeModule = fs.readFileSync(filePath).toString()
+    const routeModule = await (await fs.readFile(filePath)).toString()
 
     let routeNameMatch = routeNameMatcher.exec(routeModule)
-    let routeName: string
+    let routeName = parseRoutePathToName(routePath)
     if (routeNameMatch?.[1]) routeName = routeNameMatch[1]
-    else routeName = parseRoutePathToName(routePath)
 
-    return {
+    routeDefinitions.push({
       name: routeName,
       path: routePath,
-    }
-  })
+    })
+  }
 
   let routeConfig = createRouterConfig(routeDefinitions)
 
@@ -96,10 +96,10 @@ export async function createRouteIncludes(routeFilePaths: string[], root: string
     type RouteOptions =
       |
         ${routeOptions.map((option) => inspect(option)).join(' | ')}
-    `.replace("'any'", 'any')
+    `.replace(/'any'/g, 'any')
 
   let routeDefinitionsString = `
-    const routeConfig = createRouterConfig(${inspect(routeDefinitions)})
+    export const routeConfig = createRouterConfig(${inspect(routeDefinitions)})
     `
 
   return { routeOptionsString, routeDefinitionsString }

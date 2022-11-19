@@ -16,6 +16,22 @@ import fs from 'fs-extra'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const root = process.cwd()
 
+import { RenderRouteOptions, RenderFragmentOptions } from '../lib/view/render.js'
+export { SharedRenderRouteOptions } from '../lib/view/render.js'
+export { RouteInfo } from '../lib/routes.js'
+export { getHref as originalGetHref, createRouterConfig } from '../lib/routes.js'
+export { defineCleoConfig, CleoConfig, CleoConfigCtx } from '../cleoConfig.js'
+export { Helmet } from 'react-helmet'
+export { DefaultLayoutProps } from '../layouts/default.js'
+
+declare module 'fastify' {
+  interface FastifyReply {
+    html: (content: string) => FastifyReply
+    render: <P, L>(options: RenderRouteOptions<P, L>) => FastifyReply
+    renderFragment: <P>(options: RenderFragmentOptions<P>) => FastifyReply
+  }
+}
+
 export interface CleoPluginOpts {
   prerender?: boolean
 }
@@ -107,7 +123,7 @@ export async function cleo(opts: CleoPluginOpts = {}): Promise<Plugin[]> {
       },
 
       async buildStart() {
-        if (!viteConfigEnv.ssrBuild) {
+        if (!viteConfigEnv.ssrBuild && viteConfigEnv.command === 'build') {
           // Create the initial includes files
           // Find all the routes
           let routeFilePaths = await globby([
@@ -145,7 +161,3 @@ export async function cleo(opts: CleoPluginOpts = {}): Promise<Plugin[]> {
     chainBuild(opts),
   ]
 }
-
-export { defineCleoConfig } from '../cleoConfig.js'
-export { getHref as originalGetHref, createRouterConfig } from '../lib/routes.js'
-export { Helmet } from 'react-helmet'

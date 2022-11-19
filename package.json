@@ -1,12 +1,9 @@
 {
   "name": "@ordinal/cleo",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch"
-  },
-  "bin": {
-    "cleo": "./dist/cli.js"
   },
   "type": "module",
   "keywords": [],
@@ -39,11 +36,11 @@
   "exports": {
     "./package.json": "./package.json",
     ".": {
-      "types": "./@types/index.d.ts",
+      "types": "./dist/exports/index.d.ts",
       "import": "./dist/exports/index.js"
     }
   },
-  "types": "types/index.d.ts",
+  "types": "./dist/exports/index.d.ts",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ordinal-studio/cleo.git"

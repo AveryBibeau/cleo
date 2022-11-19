@@ -3,23 +3,40 @@ import { h, ComponentType, FunctionComponent, ComponentChildren } from 'preact'
 import { DefaultLayout, DefaultLayoutProps } from '../../layouts/default.js'
 import { FastifyReply, FastifyRequest } from 'fastify'
 import { Helmet } from 'react-helmet'
+import { CleoConfig, CleoConfigCtx } from '../../cleoConfig.js'
 
-type SharedRenderRouteOptions<P = {}> = {
+export interface SharedRenderRouteOptions<P = {}> {
   component: ComponentType<P>
   props?: P & { children?: ComponentChildren; addClass?: string }
-  presession?: boolean
 }
 
-export type RenderRouteOptionsDefault<P = {}> = SharedRenderRouteOptions<P> & {
+// Layout options when using an unspecified layout that has no props
+export interface RenderRouteOptionsDefault<P = {}> extends SharedRenderRouteOptions<P> {
   layout?: undefined
   layoutProps?: DefaultLayoutProps
 }
-export type RenderRouteOptionsWithLayout<P = {}, L = {}> = SharedRenderRouteOptions<P> & {
-  layout: ComponentType<L>
-  layoutProps?: L
+
+// Layout options when using an unspecified layout that has props specified from declaration merging
+export interface RenderRouteOptionsDefaultWithProps<P = {}> extends SharedRenderRouteOptions<P> {
+  layout?: undefined
+  layoutProps: DefaultLayoutProps
 }
 
-export type RenderRouteOptions<P = {}, L = {}> = RenderRouteOptionsDefault<P> | RenderRouteOptionsWithLayout<P, L>
+// Layout options when using a specified layout that has no props
+export interface RenderRouteOptionsWithLayout<P = {}, L = {}> extends SharedRenderRouteOptions<P> {
+  layout: ComponentType<L>
+  layoutProps?: undefined
+}
+
+// Layout options when using a specified layout that has no props
+export interface RenderRouteOptionsWithLayoutWithProps<P = {}, L = {}> extends SharedRenderRouteOptions<P> {
+  layout: ComponentType<L>
+  layoutProps: L
+}
+
+export type RenderRouteOptions<P = {}, L = {}> =
+  | (keyof DefaultLayoutProps extends never ? RenderRouteOptionsDefault<P> : RenderRouteOptionsDefaultWithProps<P>)
+  | (keyof L extends never ? RenderRouteOptionsWithLayout<P, L> : RenderRouteOptionsWithLayoutWithProps<P, L>)
 
 export type RenderFragmentOptions<P = {}> = {
   component: ComponentType<P>
@@ -30,7 +47,8 @@ export async function renderRoute<P extends h.JSX.IntrinsicAttributes, L>(
   options: RenderRouteOptions<P, L>,
   request: FastifyRequest,
   reply: FastifyReply,
-  template: string
+  template: string,
+  cleoConfig: CleoConfig
 ) {
   let propsToUse = options.props ?? ({} as P)
   let layoutPropsToUse = options.layoutProps ?? ({} as L)
@@ -46,19 +64,29 @@ export async function renderRoute<P extends h.JSX.IntrinsicAttributes, L>(
     // Noop
   }
 
-  let layout = options.layout === undefined ? defaultLayoutToUse : options.layout
+  let layout = options?.layout === undefined ? defaultLayoutToUse : options.layout
+
+  for (let renderRouteHook of cleoConfig?.hooks?.beforeRenderPage ?? []) {
+    // @ts-ignore
+    await renderRouteHook(request, reply, options)
+  }
 
   return renderPage<P, L>(layout as ComponentType<L>, options.component, propsToUse, layoutPropsToUse as L, template)
 }
 
-export function renderComponent<P extends h.JSX.IntrinsicAttributes>(
+export async function renderComponent<P extends h.JSX.IntrinsicAttributes>(
   options: RenderFragmentOptions<P>,
-  request: FastifyRequest
+  request: FastifyRequest,
+  cleoConfig: CleoConfig
 ) {
   const Component = options.component
-  const markup = render(<Component {...(options.props ?? ({} as P))}></Component>)
 
-  return markup
+  for (let renderRouteHook of cleoConfig?.hooks?.beforeRenderPage ?? []) {
+    // @ts-ignore
+    await renderRouteHook(request, reply, options)
+  }
+
+  return render(<Component {...(options.props ?? ({} as P))}></Component>)
 }
 
 function renderPage<P extends h.JSX.IntrinsicAttributes, L>(

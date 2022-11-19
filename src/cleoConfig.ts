@@ -1,6 +1,13 @@
-import { FastifyInstance, FastifyServerOptions } from 'fastify'
+import { FastifyInstance, FastifyReply, FastifyRequest, FastifyServerOptions } from 'fastify'
+import { SharedRenderRouteOptions } from './lib/view/render.js'
 
 type FastifyHook = (app: FastifyInstance, ctx: CleoConfigCtx) => Promise<void> | void
+
+type RenderPageHook = (
+  request: FastifyRequest,
+  reply: FastifyReply,
+  renderOpts: SharedRenderRouteOptions
+) => Promise<void> | void
 
 export interface CleoConfig {
   generate?:
@@ -11,6 +18,7 @@ export interface CleoConfig {
   fastifyOpts?: FastifyServerOptions
   hooks?: {
     fastifyHooks?: FastifyHook[]
+    beforeRenderPage?: RenderPageHook[]
   }
 }
 

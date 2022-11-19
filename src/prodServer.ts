@@ -4,7 +4,7 @@ import FastifyStatic, { FastifyStaticOptions } from '@fastify/static'
 import { FastifyReply, fastify } from 'fastify'
 
 import { createApp } from './app.js'
-import { renderRoute, RenderRouteOptions } from './lib/view/render.js'
+import { renderComponent, renderRoute, RenderFragmentOptions, RenderRouteOptions } from './lib/view/render.js'
 import { parseFilePathToRoutePath, routeMethods } from './lib/parseRoutes.js'
 import { ServerResponse } from 'http'
 import { CleoConfig, CleoConfigCtx, DefineCleoConfigResolver } from './cleoConfig.js'
@@ -74,8 +74,13 @@ export async function createServer(ctx: CleoConfigCtx) {
   // Get the production html template
   let prodTemplate = fs.readFileSync(path.resolve(root + '/dist/client/index.html'), 'utf-8')
 
+  app.decorateReply('renderFragment', async function (this: FastifyReply, options: RenderFragmentOptions) {
+    let result = await renderComponent(options, this.request, cleoConfig)
+    return this.html(result)
+  })
+
   app.decorateReply('render', async function (this: FastifyReply, options: RenderRouteOptions) {
-    let result = await renderRoute(options, this.request, this, prodTemplate)
+    let result = await renderRoute(options, this.request, this, prodTemplate, cleoConfig)
     return this.html(result)
   })
 
