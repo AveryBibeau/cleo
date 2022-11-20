@@ -71,7 +71,16 @@ export async function renderRoute<P extends h.JSX.IntrinsicAttributes, L>(
     await renderRouteHook(request, reply, options)
   }
 
-  return renderPage<P, L>(layout as ComponentType<L>, options.component, propsToUse, layoutPropsToUse as L, template)
+  return renderPage<P, L>(
+    layout as ComponentType<L>,
+    options.component,
+    propsToUse,
+    layoutPropsToUse as L,
+    template,
+    request,
+    reply,
+    cleoConfig
+  )
 }
 
 export async function renderComponent<P extends h.JSX.IntrinsicAttributes>(
@@ -94,7 +103,10 @@ function renderPage<P extends h.JSX.IntrinsicAttributes, L>(
   page: ComponentType<P>,
   props: P,
   layoutProps: L,
-  template: string
+  template: string,
+  request: FastifyRequest,
+  reply: FastifyReply,
+  cleoConfig: CleoConfig
 ) {
   const Layout = layout
   const Page = page
@@ -119,7 +131,11 @@ function renderPage<P extends h.JSX.IntrinsicAttributes, L>(
   ${headParts.title.toString()}
   `.replace(/data-react-helmet="true"/g, '')
 
-  const html = template.replace(`<!--ssr-outlet-->`, markup).replace('<!--ssr-head-->', headTags ?? '')
+  let html = template.replace(`<!--ssr-outlet-->`, markup).replace('<!--ssr-head-->', headTags ?? '')
+
+  for (let transformHtmlHook of cleoConfig?.hooks?.afterRenderPage ?? []) {
+    html = transformHtmlHook(request, reply, html)
+  }
 
   return html
 }

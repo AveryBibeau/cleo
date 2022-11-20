@@ -9,6 +9,8 @@ type RenderPageHook = (
   renderOpts: SharedRenderRouteOptions
 ) => Promise<void> | void
 
+type TransformHtmlHook = (request: FastifyRequest, reply: FastifyReply, template: string) => string
+
 export interface CleoConfig {
   generate?:
     | boolean
@@ -19,6 +21,7 @@ export interface CleoConfig {
   hooks?: {
     fastifyHooks?: FastifyHook[]
     beforeRenderPage?: RenderPageHook[]
+    afterRenderPage?: TransformHtmlHook[]
   }
 }
 

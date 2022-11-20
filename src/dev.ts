@@ -34,7 +34,7 @@ export async function createDevServer(vite: ViteDevServer, configEnv: ConfigEnv)
   // Load the Cleo config
   let cleoConfigModule = (await vite.ssrLoadModule('/cleo.config.ts')).default as DefineCleoConfigResolver | undefined
   let cleoConfig: CleoConfig
-  if (typeof cleoConfigModule === 'function') cleoConfig = await cleoConfigModule({ isDev: false, prerender: false })
+  if (typeof cleoConfigModule === 'function') cleoConfig = await cleoConfigModule({ isDev: true, prerender: false })
   else cleoConfig = cleoConfigModule ?? {}
 
   const restartFastify = debounce(async function (file: string) {
@@ -65,7 +65,7 @@ export async function createDevServer(vite: ViteDevServer, configEnv: ConfigEnv)
 
     // Run all fastify hooks on the app instance
     for (let hook of cleoConfig?.hooks?.fastifyHooks ?? []) {
-      await hook(app, { isDev: false, prerender: false })
+      await hook(app, { isDev: true, prerender: false })
     }
 
     // Render helper is called dynamically
