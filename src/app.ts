@@ -14,6 +14,12 @@ export async function createApp(app: FastifyInstance, opts: any) {
     request: fastify.FastifyRequest,
     reply: fastify.FastifyReply
   ) {
+    // Skip the error handler and send an empty 401 for basic auth requests
+    // See: https://github.com/fastify/fastify-basic-auth
+    if (error.statusCode === 401 && reply.getHeader('WWW-Authenticate') === 'Basic') {
+      return reply.code(401).send()
+    }
+
     // Log error
     request.log.error(error)
 
@@ -32,12 +38,12 @@ export async function createApp(app: FastifyInstance, opts: any) {
      * Try sending error response, fallback catch for errors thrown in renderRoute
      */
     try {
-      await reply.status(error.statusCode ?? 500).render({
+      return await reply.status(error.statusCode ?? 500).render({
         component: errorLayoutToUse,
         props: { error },
       })
     } catch (e) {
-      request.log.error(error)
+      request.log.error(e)
       let errorMessage = 'There was an error processing your request. Please try again later.'
       if (isDev && error.stack) errorMessage += '\n\n' + error.stack
       return reply.status(500).send(errorMessage)
