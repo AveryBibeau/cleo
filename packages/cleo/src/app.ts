@@ -25,10 +25,12 @@ export async function createApp(app: FastifyInstance, opts: any) {
 
     let errorLayoutToUse = ErrorLayout
     try {
-      // @ts-ignore
-      let userErrorLayout = await import('/layouts/error.tsx')
-      if (userErrorLayout.default) {
-        errorLayoutToUse = userErrorLayout.default
+      let maybeUserErrorLayout = Object.values(await import.meta.glob('/layouts/error.{tsx,jsx}'))
+      if (maybeUserErrorLayout.length > 0) {
+        let userErrorLayout = (await maybeUserErrorLayout[0]()) as any
+        if (userErrorLayout.default) {
+          errorLayoutToUse = userErrorLayout.default
+        }
       }
     } catch (e) {
       // Noop

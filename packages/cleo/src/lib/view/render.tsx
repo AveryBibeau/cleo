@@ -56,9 +56,13 @@ export async function renderRoute<P extends h.JSX.IntrinsicAttributes, L>(
   let defaultLayoutToUse = DefaultLayout
   try {
     // @ts-ignore
-    let userDefaultLayout = await import('/layouts/default.tsx')
-    if (userDefaultLayout.default) {
-      defaultLayoutToUse = userDefaultLayout.default
+    let maybeUserDefaultLayout = Object.values(await import.meta.glob('/layouts/default.{tsx,jsx}'))
+
+    if (maybeUserDefaultLayout.length > 0) {
+      let userDefaultLayout = (await maybeUserDefaultLayout[0]()) as any
+      if (userDefaultLayout.default) {
+        defaultLayoutToUse = userDefaultLayout.default
+      }
     }
   } catch (e) {
     // Noop

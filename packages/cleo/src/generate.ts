@@ -30,7 +30,7 @@ export async function generate() {
 
   async function generatePath(routePath: string, resultFilePath: string) {
     console.info('Generating route', routePath)
-    let res = await fetch(`http://localhost:3000${routePath}`)
+    let res = await fetch(`http://${host}:${port}${routePath}`)
 
     let htmlResponse = await res.text()
 
@@ -43,9 +43,8 @@ export async function generate() {
     let routeFilePath = routeFilePaths[i]
     let routePath = parseFilePathToRoutePath(routeFilePath, root)
     let resultFilePath = parseFilePathToRoutePath(routeFilePath, root, true)
-    // TODO: Handle parameter based routes
-    if (routePath.includes(':')) {
-    } else {
+
+    if (!routePath.includes(':') && !routePath.includes('*')) {
       await generatePath(routePath, resultFilePath)
     }
   }

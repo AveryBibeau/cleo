@@ -8,7 +8,7 @@ export interface RouteInfo {
   compiler?: PathFunction<object>
 }
 
-export type RouteParamsRecord = Record<string, string | number>
+export type RouteParamsRecord = Record<string, any>
 export type RouteQueryRecord = Record<string, string>
 
 export interface GetHrefConfig {
@@ -17,6 +17,7 @@ export interface GetHrefConfig {
   query?: RouteQueryRecord
 }
 
+// TODO: support hash
 export function getHref(config: GetHrefConfig, routeConfig: RouteInfo[]): string {
   let href = ''
   // Get corresponding route definition

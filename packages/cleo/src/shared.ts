@@ -25,7 +25,6 @@ export function baseViteConfig(): UserConfig {
     },
     build: {
       target: 'es2020',
-      polyfillModulePreload: false,
       commonjsOptions: {
         transformMixedEsModules: true,
       },

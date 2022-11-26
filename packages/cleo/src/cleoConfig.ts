@@ -12,11 +12,9 @@ type RenderPageHook = (
 type TransformHtmlHook = (request: FastifyRequest, reply: FastifyReply, template: string) => string
 
 export interface CleoConfig {
-  generate?:
-    | boolean
-    | {
-        addPaths?: (() => Promise<string[]>) | string[]
-      }
+  generate?: {
+    addPaths?: (() => Promise<string[]>) | string[]
+  }
   fastifyOpts?: FastifyServerOptions
   hooks?: {
     fastifyHooks?: FastifyHook[]

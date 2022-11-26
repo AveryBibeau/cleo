@@ -1,0 +1,3 @@
+{
+  "extends": "./.cleo/tsconfig.json"
+}

@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "rootDir": "../",
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "Node",
+    "jsx": "react-jsx",
+    "jsxImportSource": "preact",
+    "baseUrl": "../",
+    "isolatedModules": true,
+    "paths": {
+      "##/*": ["./*"],
+      "#app": ["./.cleo/index.ts"],
+      "react": ["./node_modules/preact/compat/"],
+      "react-dom": ["./node_modules/preact/compat/"]
+    },
+    "esModuleInterop": true,
+    "skipLibCheck": true
+  },
+  "include": ["../.cleo/**/*.ts", "../**/*.ts", "../**/*.tsx", "../**/*.js", "../**/*.jsx"],
+  "exclude": ["../node_modules/**", "../dist/**"]
+}

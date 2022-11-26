@@ -1,0 +1,35 @@
+{
+  "name": "create-cleo",
+  "version": "0.0.1",
+  "description": "Create an @ordinal/cleo starter project.",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
+  },
+  "type": "module",
+  "bin": "./dist/cli.js",
+  "keywords": [],
+  "devDependencies": {
+    "@types/fs-extra": "^9.0.13",
+    "@types/node": "^17.0.45",
+    "typescript": "^4.9.3"
+  },
+  "dependencies": {
+    "fs-extra": "^10.1.0",
+    "kleur": "^4.1.5",
+    "sade": "^1.8.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ordinal-studio/cleo.git",
+    "directory": "packages/create-cleo"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ordinal-studio/cleo/issues"
+  },
+  "homepage": "https://github.com/ordinal-studio/cleo#readme",
+  "engines": {
+    "node": ">=16.14"
+  }
+}

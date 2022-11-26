@@ -1,4 +1,3 @@
-import { CleoConfig } from '../cleoConfig.js'
 import { ConfigEnv, mergeConfig, Plugin, ResolvedConfig, build } from 'vite'
 import { baseViteConfig } from '../shared.js'
 import { createDevServer } from '../dev.js'
@@ -62,13 +61,16 @@ export async function chainBuild(opts: CleoPluginOpts): Promise<Plugin> {
      */
     async writeBundle() {
       if (!viteConfig.build?.ssr) {
+        if (opts.prerender) console.info('Building production server for prerendering')
         await build({
           build: {
             ssr: true,
           },
+          logLevel: opts.prerender ? 'warn' : 'info',
         })
 
         if (opts.prerender) {
+          console.info('Generating pages...')
           let generateModule = await import(path.resolve(root, './dist/server/generate.js'))
           await generateModule.generate()
         }
