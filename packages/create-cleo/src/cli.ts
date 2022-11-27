@@ -28,5 +28,8 @@ sade('create-cleo <dir>', true)
     fs.copySync(templatePath, resolvedTargetDir, {
       overwrite: false,
     })
+
+    // Rewrite _gitignore => .gitignore
+    fs.renameSync(path.resolve(dir, './_gitignore'), path.resolve(dir, './.gitignore'))
   })
   .parse(process.argv)

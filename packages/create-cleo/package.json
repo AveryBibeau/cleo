@@ -1,6 +1,6 @@
 {
   "name": "create-cleo",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Create an @ordinal/cleo starter project.",
   "scripts": {
     "build": "tsc",
