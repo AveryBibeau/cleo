@@ -150,3 +150,46 @@ export default defineCleoConfig(async ({ isDev, prerender }) => {
   }
 })
 ```
+
+## Helmet
+
+Cleo supports and auto-imports [`react-helmet`](https://github.com/nfl/react-helmet/) via `preact-compat`
+
+```tsx
+// ##/components/About.tsx
+import { FunctionComponent } from "preact";
+
+export const About: FunctionComponent = ({ children }) => (
+  <div>
+    <Helmet>
+      <title>About</title>
+      <meta
+        name="description"
+        content="An about page description using React Helmet"
+      />
+    </Helmet>
+  </div>
+);
+
+```
+
+## Layouts
+
+Cleo will automatically load the files `##/layouts/default.tsx` and `##/layouts/error.tsx` to override the built-in [default](https://github.com/ordinal-studio/cleo/blob/master/packages/cleo/src/layouts/default.tsx) and [error](https://github.com/ordinal-studio/cleo/blob/master/packages/cleo/src/layouts/error.tsx) layouts. A default export must be used to provide a layout override.
+
+```ts
+// ##/layouts/default.tsx
+import { FunctionComponent } from "preact";
+
+const DefaultLayout: FunctionComponent = ({ children }) => (
+  <>
+    <header>Cleo - default layout override</header>
+    <main>{children}</main>
+  </>
+);
+
+export default DefaultLayout;
+
+```
+
+Layouts can also be specified when calling the `res.render` function using the `layout` property. The `layoutProps` property will be typed based on the provided layout.
