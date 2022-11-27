@@ -14,7 +14,7 @@ export async function generate() {
   // @ts-ignore
   let cleoConfigModule = (await import('/cleo.config.ts')).default as DefineCleoConfigResolver | undefined
   let cleoConfig: CleoConfig
-  if (typeof cleoConfigModule === 'function') cleoConfig = await cleoConfigModule({ isDev: false, prerender: false })
+  if (typeof cleoConfigModule === 'function') cleoConfig = await cleoConfigModule({ isDev: false, prerender: true })
   else cleoConfig = cleoConfigModule ?? {}
 
   let { app, port, host } = await createServer({ isDev: false, prerender: true })

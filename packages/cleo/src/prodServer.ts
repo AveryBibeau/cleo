@@ -13,7 +13,7 @@ import { UserConfig } from 'vite'
 export async function createServer(ctx: CleoConfigCtx) {
   const root = process.cwd()
   // Find all the routes
-  // Note: Patterns here have to passed as literals (https://vitejs.dev/guide/features.html#glob-import-caveats)
+  // Note: Patterns here have to be passed as literals (https://vitejs.dev/guide/features.html#glob-import-caveats)
   // Should match patterns found in ./shared.ts
   let routeModules = await import.meta.glob(['/routes/**/*.{ts,tsx,js,jsx}', '!/routes/**/_*.{ts,tsx,js,jsx}'])
 
@@ -72,11 +72,11 @@ export async function createServer(ctx: CleoConfigCtx) {
   } as FastifyStaticOptions)
 
   // Get the production html template
-  let prodTemplate = fs.readFileSync(path.resolve(root + '/dist/client/index.html'), 'utf-8')
+  let prodTemplate = fs.readFileSync(path.resolve(root, './dist/client/index.html'), 'utf-8')
 
   app.decorateReply('renderFragment', async function (this: FastifyReply, options: RenderFragmentOptions) {
     let result = await renderComponent(options, this.request, cleoConfig)
-    return this.html(result)
+    return this.header('c-fragment', true).html(result)
   })
 
   app.decorateReply('render', async function (this: FastifyReply, options: RenderRouteOptions) {

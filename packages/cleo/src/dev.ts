@@ -37,24 +37,25 @@ export async function createDevServer(vite: ViteDevServer, configEnv: ConfigEnv)
   if (typeof cleoConfigModule === 'function') cleoConfig = await cleoConfigModule({ isDev: true, prerender: false })
   else cleoConfig = cleoConfigModule ?? {}
 
+  /**
+   * Note: Unlink/add are triggered simultaneously when renaming a file leading to
+   * two restarts, so the restart function here is debounced
+   **/
   const restartFastify = debounce(async function (file: string) {
+    // TODO: Restart server on other file changes, e.g. cleo.config.ts?
     if (!file.startsWith(root + '/routes/')) return
+
     console.time('Rebooting Fastify server')
     await restart()
     console.timeEnd('Rebooting Fastify server')
   }, 50)
 
-  // TODO: Restart server on other file changes, e.g. cleo.config.ts, maybe vite.config.ts?
-  /**
-   * Note: Unlink/add are triggered simultaneously when renaming a file leading to
-   * two restarts, so the restart function here is debounced
-   **/
   vite.watcher.on('add', restartFastify)
   vite.watcher.on('change', restartFastify)
   vite.watcher.on('unlink', restartFastify)
 
   // Create the Fastify app from app.ts
-  let appLoader = (await vite.ssrLoadModule(__dirname + '/app.js')).createApp
+  let appLoader = (await vite.ssrLoadModule(path.resolve(__dirname, './app.js'))).createApp
 
   /**
    * This will be called every time the Fastify server is restarted due to route file changes
@@ -104,15 +105,15 @@ export async function createDevServer(vite: ViteDevServer, configEnv: ConfigEnv)
       let { url } = req.raw
 
       if (url) {
-        let templateHtml = fs.readFileSync(path.resolve(root + '/index.html'), 'utf-8')
+        let templateHtml = fs.readFileSync(path.resolve(root, './index.html'), 'utf-8')
 
         let template = await vite.transformIndexHtml(url, templateHtml)
-        let { renderRoute, renderComponent } = await vite.ssrLoadModule(path.resolve(__dirname + '/lib/view/render.js'))
+        let { renderRoute, renderComponent } = await vite.ssrLoadModule(path.resolve(__dirname, './lib/view/render.js'))
 
         // @ts-ignore
         reply.renderFragment = async function (this: FastifyReply, options: RenderRouteOptions) {
           let result = await renderComponent(options, this.request, cleoConfig)
-          return this.html(result)
+          return this.header('c-fragment', true).html(result)
         }
 
         // @ts-ignore

@@ -7,7 +7,7 @@
     "start": "node --enable-source-maps ./dist/server/prod.js"
   },
   "dependencies": {
-    "@fastify/type-provider-typebox": "^2.3.0",
+    "@fastify/type-provider-typebox": "^2.4.0",
     "@ordinal/cleo": "0.4.0",
     "@sinclair/typebox": "^0.25.9",
     "fastify": "4.8.1",
