@@ -1,11 +1,12 @@
 import fs from 'fs'
 import path from 'path'
-import { evaluateSync } from '@mdx-js/mdx'
+import { evaluate } from '@mdx-js/mdx'
 import mdxPrism from 'mdx-prism'
 import remarkGFM from 'remark-gfm'
 import { Fragment, jsx, jsxs } from 'preact/jsx-runtime'
 import { Header } from '##/components/Header'
 import { ExternalLink } from '##/components/ExternalLink'
+import { TableOfContents } from '##/components/TableOfContents'
 
 const root = process.cwd()
 
@@ -21,13 +22,15 @@ export const get = createRequestHandler({
       .split('<!-- End site docs -->')[0]
       .replace(/(```[A-Za-z]+) {/g, '$1{') // Collapse whitespace after code block language specifier to allow line highlighting
 
-    const ReadmeContent = evaluateSync(readmeDocs, {
-      Fragment,
-      jsx,
-      jsxs,
-      rehypePlugins: [mdxPrism],
-      remarkPlugins: [remarkGFM],
-    }).default
+    const ReadmeContent = (
+      await evaluate(readmeDocs, {
+        Fragment,
+        jsx,
+        jsxs,
+        rehypePlugins: [mdxPrism],
+        remarkPlugins: [remarkGFM],
+      })
+    ).default
 
     return await res.render({
       component: () => (
@@ -56,6 +59,7 @@ export const get = createRequestHandler({
             <ExternalLink href="https://github.com/ordinal-studio/cleo">View on GitHub</ExternalLink>
           </div>
 
+          <TableOfContents content={ReadmeContent}></TableOfContents>
           <div class="markdown">
             <ReadmeContent
               components={{

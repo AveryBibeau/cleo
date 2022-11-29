@@ -81,6 +81,7 @@ importers:
       '@mdx-js/rollup': ^2.1.5
       '@ordinal/cleo': ^0.4.1
       '@sinclair/typebox': ^0.25.9
+      '@types/mdx': ^2.0.3
       autoprefixer: ^10.4.13
       fastify: 4.8.1
       http-server: ^14.1.1
@@ -102,6 +103,7 @@ importers:
       preact: 10.11.3
       remark-gfm: 3.0.1
     devDependencies:
+      '@types/mdx': 2.0.3
       autoprefixer: 10.4.13_postcss@8.4.19
       http-server: 14.1.1
       postcss: 8.4.19
@@ -362,7 +364,6 @@ packages:
 
   /@types/mdx/2.0.3:
     resolution: {integrity: sha512-IgHxcT3RC8LzFLhKwP3gbMPeaK7BM9eBH46OdapPA7yvuIUJ8H6zHZV53J8hGZcTSnt95jANt+rTBNUUc22ACQ==}
-    dev: false
 
   /@types/ms/0.7.31:
     resolution: {integrity: sha512-iiUgKzV9AuaEkZqkOLDIvlQiL6ltuZd9tGcW3gwpnX8JbuiuhFlEGmmFXEXkN50Cvq7Os88IY2v0dkDqXYWVgA==}
