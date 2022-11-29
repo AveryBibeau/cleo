@@ -11,7 +11,7 @@
     "@fastify/type-provider-typebox": "^2.4.0",
     "@mdx-js/mdx": "^2.1.5",
     "@mdx-js/rollup": "^2.1.5",
-    "@ordinal/cleo": "^0.4.1",
+    "@ordinal/cleo": "workspace:*",
     "@sinclair/typebox": "^0.25.9",
     "fastify": "4.8.1",
     "mdx-prism": "^0.3.4",
