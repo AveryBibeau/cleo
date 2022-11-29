@@ -9,5 +9,9 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ordinal-studio/cleo.git"
+  },
+  "packageManager": "pnpm@7.17.1",
+  "engines": {
+    "pnpm": "^7.0.0"
   }
 }
