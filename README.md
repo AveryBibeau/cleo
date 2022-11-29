@@ -1,5 +1,7 @@
 **Cleo** is a [Vite](https://github.com/vitejs/vite) plugin for building server rendered websites with [Fastify](https://github.com/fastify/fastify) and [Preact](https://github.com/preactjs/preact)
 
+<!-- Begin site docs -->
+
 ## Features
 
 - Templates using TSX/JSX
@@ -120,16 +122,14 @@ export default defineCleoConfig(async ({ isDev, prerender }) => {
 
 In your `vite.config.ts`
 
-```ts {6}
-import { defineConfig } from "vite";
-import { cleo } from "@ordinal/cleo";
+```ts {5}
+import { defineConfig } from 'vite'
+import { cleo } from '@ordinal/cleo'
 export default defineConfig(() => {
   return {
-    plugins: [
-      cleo({ prerender: true }),
-    ],
-  };
-});
+    plugins: [cleo({ prerender: true })],
+  }
+})
 ```
 
 Then, run the `build` command. Static routes will automatically be generated and the `##/dist/` folder can be served statically.
@@ -145,8 +145,8 @@ export default defineCleoConfig(async ({ isDev, prerender }) => {
       addPaths: async () => {
         // ...
         return []
-      }
-    }
+      },
+    },
   }
 })
 ```
@@ -157,20 +157,16 @@ Cleo supports and auto-imports [`react-helmet`](https://github.com/nfl/react-hel
 
 ```tsx
 // ##/components/About.tsx
-import { FunctionComponent } from "preact";
+import { FunctionComponent } from 'preact'
 
 export const About: FunctionComponent = ({ children }) => (
   <div>
     <Helmet>
       <title>About</title>
-      <meta
-        name="description"
-        content="An about page description using React Helmet"
-      />
+      <meta name="description" content="An about page description using React Helmet" />
     </Helmet>
   </div>
-);
-
+)
 ```
 
 ## Layouts
@@ -179,17 +175,18 @@ Cleo will automatically load the files `##/layouts/default.tsx` and `##/layouts/
 
 ```ts
 // ##/layouts/default.tsx
-import { FunctionComponent } from "preact";
+import { FunctionComponent } from 'preact'
 
 const DefaultLayout: FunctionComponent = ({ children }) => (
   <>
     <header>Cleo - default layout override</header>
     <main>{children}</main>
   </>
-);
+)
 
-export default DefaultLayout;
-
+export default DefaultLayout
 ```
 
 Layouts can also be specified when calling the `res.render` function using the `layout` property. The `layoutProps` property will be typed based on the provided layout.
+
+<!-- End site docs -->

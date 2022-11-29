@@ -1,0 +1,6 @@
+{
+  "extends": "./.cleo/tsconfig.json",
+  "compilerOptions": {
+    "resolveJsonModule": true
+  }
+}
