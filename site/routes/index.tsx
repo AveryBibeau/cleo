@@ -63,13 +63,13 @@ export const get = createRequestHandler({
           <div class="markdown">
             <ReadmeContent
               components={{
-                h1: Header('h1'),
-                h2: Header('h2'),
-                h3: Header('h3'),
-                h4: Header('h4'),
-                h5: Header('h5'),
-                h6: Header('h6'),
-                a: ExternalLink,
+                h1: Header('h1') as any,
+                h2: Header('h2') as any,
+                h3: Header('h3') as any,
+                h4: Header('h4') as any,
+                h5: Header('h5') as any,
+                h6: Header('h6') as any,
+                a: ExternalLink as any,
               }}
             ></ReadmeContent>
           </div>
