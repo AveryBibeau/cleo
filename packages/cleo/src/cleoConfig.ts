@@ -16,6 +16,7 @@ export interface CleoConfig {
     addPaths?: (() => Promise<string[]>) | string[]
   }
   fastifyOpts?: FastifyServerOptions
+  typeProvider?: 'zod' | 'TypeBox'
   hooks?: {
     fastifyHooks?: FastifyHook[]
     beforeRenderPage?: RenderPageHook[]

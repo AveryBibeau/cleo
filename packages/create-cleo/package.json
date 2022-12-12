@@ -21,14 +21,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ordinal-studio/cleo.git",
+    "url": "git+https://github.com/averybibeau/cleo.git",
     "directory": "packages/create-cleo"
   },
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/ordinal-studio/cleo/issues"
+    "url": "https://github.com/averybibeau/cleo/issues"
   },
-  "homepage": "https://github.com/ordinal-studio/cleo#readme",
+  "homepage": "https://github.com/averybibeau/cleo#readme",
   "engines": {
     "node": ">=16.14"
   }

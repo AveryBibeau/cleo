@@ -2,9 +2,12 @@ import fs from 'fs-extra'
 import path from 'path'
 import { root, __dirname } from '../shared.js'
 
+export type CleoTypeProviderOpts = 'zod' | 'TypeBox'
+
 interface IncludeCleoOpts {
   routeOptions: string
   routeDefinitions: string
+  typeProvider?: CleoTypeProviderOpts
 }
 
 // Move ./includes to project .cleo directory
@@ -29,6 +32,38 @@ export async function includeCleo(opts: IncludeCleoOpts) {
   let rewrittenContents = fileContents
     .replace('/* ROUTE_OPTIONS */', opts.routeOptions)
     .replace('/* ROUTE_CONFIG */', opts.routeDefinitions)
+
+  // Add the type provider
+
+  if (opts.typeProvider === 'zod') {
+    rewrittenContents += `
+      import { ZodTypeProvider } from "fastify-type-provider-zod";
+      export type RequestHandler<S extends FastifySchema = {}> = RouteShorthandOptionsWithHandler<
+        RawServerDefault,
+        RawRequestDefaultExpression<RawServerDefault>,
+        RawReplyDefaultExpression<RawServerDefault>,
+        RouteGenericInterface,
+        unknown,
+        S,
+        ZodTypeProvider,
+        FastifyBaseLogger
+      >
+    `
+  } else {
+    rewrittenContents += `
+      import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox'
+      export type RequestHandler<S extends FastifySchema = {}> = RouteShorthandOptionsWithHandler<
+        RawServerDefault,
+        RawRequestDefaultExpression<RawServerDefault>,
+        RawReplyDefaultExpression<RawServerDefault>,
+        RouteGenericInterface,
+        unknown,
+        S,
+        TypeBoxTypeProvider,
+        FastifyBaseLogger
+      >
+    `
+  }
 
   // Write helper functions
   await fs.writeFile(path.resolve(root, './.cleo/index.ts'), rewrittenContents)

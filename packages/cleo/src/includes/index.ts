@@ -2,20 +2,8 @@ import { FastifyBaseLogger, FastifySchema, RawReplyDefaultExpression, RouteShort
 
 import { RawRequestDefaultExpression, RawServerDefault } from 'fastify'
 import { RouteGenericInterface } from 'fastify'
-import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox'
 
 import { originalGetHref, createRouterConfig, Helmet } from '@ordinal/cleo'
-
-export type RequestHandler<S extends FastifySchema = {}> = RouteShorthandOptionsWithHandler<
-  RawServerDefault,
-  RawRequestDefaultExpression<RawServerDefault>,
-  RawReplyDefaultExpression<RawServerDefault>,
-  RouteGenericInterface,
-  unknown,
-  S,
-  TypeBoxTypeProvider,
-  FastifyBaseLogger
->
 
 export const createRequestHandler = <S extends FastifySchema>(options: RequestHandler<S>) => options
 

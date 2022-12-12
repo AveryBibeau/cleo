@@ -171,7 +171,7 @@ export const About: FunctionComponent = ({ children }) => (
 
 ## Layouts
 
-Cleo will automatically load the files `##/layouts/default.tsx` and `##/layouts/error.tsx` to override the built-in [default](https://github.com/ordinal-studio/cleo/blob/master/packages/cleo/src/layouts/default.tsx) and [error](https://github.com/ordinal-studio/cleo/blob/master/packages/cleo/src/layouts/error.tsx) layouts. A default export must be used to provide a layout override.
+Cleo will automatically load the files `##/layouts/default.tsx` and `##/layouts/error.tsx` to override the built-in [default](https://github.com/averybibeau/cleo/blob/master/packages/cleo/src/layouts/default.tsx) and [error](https://github.com/averybibeau/cleo/blob/master/packages/cleo/src/layouts/error.tsx) layouts. A default export must be used to provide a layout override.
 
 ```ts
 // ##/layouts/default.tsx
@@ -188,5 +188,55 @@ export default DefaultLayout
 ```
 
 Layouts can also be specified when calling the `res.render` function using the `layout` property. The `layoutProps` property will be typed based on the provided layout.
+
+## Type provider
+
+Cleo uses `@sinclair/typebox` with `ajv` by default, as recommended by Fastify. You can also use [`fastify-type-provider-zod`](https://github.com/turkerdev/fastify-type-provider-zod) by modifying your `vite.config.ts`.
+
+```ts {5}
+import { defineConfig } from 'vite'
+import { cleo } from '@ordinal/cleo'
+export default defineConfig(() => {
+  return {
+    plugins: [cleo({ typeProvider: 'zod' })],
+  }
+})
+```
+
+The `createRequestHandler` type will be updated to use `ZodTypeProvider`. Then, add the validator and serializer compilers in your `cleo.config.ts`
+
+```ts {7-10}
+import { defineCleoConfig } from '@ordinal/cleo'
+import { serializerCompiler, validatorCompiler } from 'fastify-type-provider-zod'
+
+export default defineCleoConfig(async ({ isDev, prerender }) => ({
+  hooks: {
+    fastifyHooks: [
+      (app) => {
+        app.setValidatorCompiler(validatorCompiler)
+        app.setSerializerCompiler(serializerCompiler)
+      },
+    ],
+  },
+}))
+```
+
+`zod` will be auto-imported and can be used when defining schemas within `createRequestHandler`
+
+```tsx
+export const get = async (app) =>
+  createRequestHandler({
+    schema: {
+      querystring: zod.object({
+        name: zod.optional(zod.string()),
+      }),
+    },
+    async handler(req, res) {
+      return await res.render({
+        component: () => <h1>Hello world! {req.query.name ?? ''}</h1>,
+      })
+    },
+  })
+```
 
 <!-- End site docs -->

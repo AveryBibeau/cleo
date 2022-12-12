@@ -6,7 +6,7 @@ import checker from 'vite-plugin-checker'
 import AutoImport from 'unplugin-auto-import/vite'
 import path from 'path'
 import { globby } from 'globby'
-import { includeCleo } from '../lib/includes.js'
+import { CleoTypeProviderOpts, includeCleo } from '../lib/includes.js'
 import { createRouteIncludes } from '../lib/parseRoutes.js'
 import { fileURLToPath } from 'url'
 
@@ -33,6 +33,7 @@ declare module 'fastify' {
 
 export interface CleoPluginOpts {
   prerender?: boolean
+  typeProvider?: CleoTypeProviderOpts
 }
 
 export function ensureCleoDirs(): Plugin {
@@ -134,7 +135,11 @@ export async function cleo(opts: CleoPluginOpts = {}): Promise<Plugin[]> {
           ])
 
           let { routeOptionsString, routeDefinitionsString } = await createRouteIncludes(routeFilePaths, root)
-          await includeCleo({ routeDefinitions: routeDefinitionsString, routeOptions: routeOptionsString })
+          await includeCleo({
+            routeDefinitions: routeDefinitionsString,
+            routeOptions: routeOptionsString,
+            typeProvider: opts.typeProvider,
+          })
         }
       },
 
@@ -142,7 +147,7 @@ export async function cleo(opts: CleoPluginOpts = {}): Promise<Plugin[]> {
       async configureServer(vite) {
         process.env.NODE_ENV = 'development'
         return async () => {
-          await createDevServer(vite, viteConfigEnv)
+          await createDevServer(vite, viteConfigEnv, opts.typeProvider)
         }
       },
     },
@@ -153,8 +158,8 @@ export async function cleo(opts: CleoPluginOpts = {}): Promise<Plugin[]> {
       imports: [
         {
           preact: ['h', 'Fragment'],
-          '@sinclair/typebox': [['Type', 'TypeBox']],
           '#app': ['createRequestHandler', 'getHref', 'Helmet'],
+          ...(opts.typeProvider === 'zod' ? { zod: [['z', 'zod']] } : { '@sinclair/typebox': [['Type', 'TypeBox']] }),
         },
       ],
       // TODO: This fails if included in the ./.cleo/@types directory if the directory doesn't exist yet

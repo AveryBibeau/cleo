@@ -56,7 +56,7 @@ export const get = createRequestHandler({
 
           <div class="flex gap-4 flex-wrap mb-6">
             <div class="font-bold">Version {cleoPackage.version} Alpha</div>
-            <ExternalLink href="https://github.com/ordinal-studio/cleo">View on GitHub</ExternalLink>
+            <ExternalLink href="https://github.com/averybibeau/cleo">View on GitHub</ExternalLink>
           </div>
 
           <TableOfContents content={ReadmeContent}></TableOfContents>

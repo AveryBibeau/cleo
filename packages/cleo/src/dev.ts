@@ -10,23 +10,21 @@ import { debounce } from 'lodash-es'
 import { RenderRouteOptions } from './lib/view/render.js'
 import { CleoConfig, DefineCleoConfigResolver } from './cleoConfig.js'
 import { globby } from 'globby'
-import { includeCleo } from './lib/includes.js'
+import { CleoTypeProviderOpts, includeCleo } from './lib/includes.js'
 
 const routesGlob = [`${root}/routes/**/*.{ts,tsx,js,jsx}`, `!${root}/routes/**/_*.{ts,tsx,js,jsx}`]
 
-async function initializeRoutes() {
+async function initializeRoutes(typeProvider?: CleoTypeProviderOpts) {
   // Create the initial includes files
   // Find all the routes
   let routeFilePaths = await globby(routesGlob)
   let { routeOptionsString, routeDefinitionsString } = await createRouteIncludes(routeFilePaths, root)
-  await includeCleo({ routeDefinitions: routeDefinitionsString, routeOptions: routeOptionsString })
+  await includeCleo({ routeDefinitions: routeDefinitionsString, routeOptions: routeOptionsString, typeProvider })
 
   return routeFilePaths
 }
 
-export async function createDevServer(vite: ViteDevServer, configEnv: ConfigEnv) {
-  await initializeRoutes()
-
+export async function createDevServer(vite: ViteDevServer, configEnv: ConfigEnv, typeProvider?: CleoTypeProviderOpts) {
   let app: FastifyInstance
   let restart: Awaited<ReturnType<typeof start>>['restart']
   let listen: Awaited<ReturnType<typeof start>>['listen']
@@ -36,6 +34,8 @@ export async function createDevServer(vite: ViteDevServer, configEnv: ConfigEnv)
   let cleoConfig: CleoConfig
   if (typeof cleoConfigModule === 'function') cleoConfig = await cleoConfigModule({ isDev: true, prerender: false })
   else cleoConfig = cleoConfigModule ?? {}
+
+  await initializeRoutes(typeProvider)
 
   /**
    * Note: Unlink/add are triggered simultaneously when renaming a file leading to
@@ -62,7 +62,7 @@ export async function createDevServer(vite: ViteDevServer, configEnv: ConfigEnv)
    */
   async function runAfterLoad(app: FastifyInstance) {
     // Reload the route files and update the includes files
-    let routeFilePaths = await initializeRoutes()
+    let routeFilePaths = await initializeRoutes(typeProvider)
 
     // Run all fastify hooks on the app instance
     for (let hook of cleoConfig?.hooks?.fastifyHooks ?? []) {
