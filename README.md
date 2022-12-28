@@ -24,7 +24,7 @@ Cleo combines a modern developer experience with the simplicity of only renderin
 
 Run `npm create cleo@latest <project-name>`
 
-Inside the new directory, install dependencies using your preferred package manager. Run the `dev` script to start the Vite development server. Use the `build` script to create production build. The `start` script will load the production server.
+Inside the new directory, install dependencies using your preferred package manager. Run the `dev` script to start the Vite development server. Use the `build` script to create a production build. The `start` script will load the production server.
 
 ## Imports
 
@@ -63,6 +63,8 @@ export const get = createRequestHandler({
 - Wildcard routes can be registered using `[...param]` in the filename. The wildcard value will be available as `request.params['*']`.
 - Files named `index` will be registered as the root for their directory. Index routes can also be registered by creating a file such as `(posts).tsx` for easier file navigation.
 - Files beginning with `_` will be ignored.
+- The optional `name` export must be a string literal.
+- Route handler exports may use uppercase or lowercase HTTP verb names. The uppercase `DELETE` is required to register `DELETE` routes, since the lowercase name is a reserved word.
 
 The `getHref` method is auto-imported and can be used to generate links to routes. The name argument will be limited to detected and generated route names. The params argument will include required route params based on the route's path.
 

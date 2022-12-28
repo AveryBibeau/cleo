@@ -24,16 +24,19 @@ async function initializeRoutes(typeProvider?: CleoTypeProviderOpts) {
   return routeFilePaths
 }
 
-export async function createDevServer(vite: ViteDevServer, configEnv: ConfigEnv, typeProvider?: CleoTypeProviderOpts) {
-  let app: FastifyInstance
-  let restart: Awaited<ReturnType<typeof start>>['restart']
-  let listen: Awaited<ReturnType<typeof start>>['listen']
-
+async function loadCleoConfig(vite: ViteDevServer): Promise<CleoConfig> {
   // Load the Cleo config
   let cleoConfigModule = (await vite.ssrLoadModule('/cleo.config.ts')).default as DefineCleoConfigResolver | undefined
   let cleoConfig: CleoConfig
   if (typeof cleoConfigModule === 'function') cleoConfig = await cleoConfigModule({ isDev: true, prerender: false })
   else cleoConfig = cleoConfigModule ?? {}
+  return cleoConfig
+}
+
+export async function createDevServer(vite: ViteDevServer, configEnv: ConfigEnv, typeProvider?: CleoTypeProviderOpts) {
+  let app: FastifyInstance
+  let restart: Awaited<ReturnType<typeof start>>['restart']
+  let listen: Awaited<ReturnType<typeof start>>['listen']
 
   await initializeRoutes(typeProvider)
 
@@ -42,11 +45,18 @@ export async function createDevServer(vite: ViteDevServer, configEnv: ConfigEnv,
    * two restarts, so the restart function here is debounced
    **/
   const restartFastify = debounce(async function (file: string) {
-    // TODO: Restart server on other file changes, e.g. cleo.config.ts?
-    if (!file.startsWith(root + '/routes/')) return
+    if (!file.startsWith(root + '/routes/') && !file.includes('cleo.config')) return
+    let cleoConfig = await loadCleoConfig(vite)
 
     console.time('Rebooting Fastify server')
-    await restart()
+    // @ts-ignore
+    await restart({
+      runAfterLoad,
+      app: appLoader,
+      ssrFixStacktrace: vite.ssrFixStacktrace,
+
+      ...(cleoConfig.fastifyOpts ?? {}),
+    })
     console.timeEnd('Rebooting Fastify server')
   }, 50)
 
@@ -61,6 +71,7 @@ export async function createDevServer(vite: ViteDevServer, configEnv: ConfigEnv,
    * This will be called every time the Fastify server is restarted due to route file changes
    */
   async function runAfterLoad(app: FastifyInstance) {
+    let cleoConfig = await loadCleoConfig(vite)
     // Reload the route files and update the includes files
     let routeFilePaths = await initializeRoutes(typeProvider)
 
@@ -80,23 +91,23 @@ export async function createDevServer(vite: ViteDevServer, configEnv: ConfigEnv,
       // Transform the file path to a Fastify route path config
       let path = parseFilePathToRoutePath(filePath, root)
       for (let method of routeMethods) {
-        if (module[method]) {
+        if (module[method] || module[method.toUpperCase()]) {
+          let methodName = module[method] ? method : method.toUpperCase()
           // TODO: Add dynamic error handler/other functions?
           let dynamicHandler = async function (req: FastifyRequest, res: FastifyReply) {
             const newModule = await vite.ssrLoadModule(filePath)
             let newHandler
-            if (typeof newModule[method] === 'function') newHandler = (await newModule[method](app)).handler
-            else newHandler = newModule[method].handler
-            // const newHandler = newModule[method].handler
+            if (typeof newModule[methodName] === 'function') newHandler = (await newModule[methodName](app)).handler
+            else newHandler = newModule[methodName].handler
             return await newHandler(req, res)
           }
 
           let resolvedMethod
-          if (typeof module[method] === 'function') resolvedMethod = await module[method](app)
-          else resolvedMethod = module[method]
+          if (typeof module[methodName] === 'function') resolvedMethod = await module[methodName](app)
+          else resolvedMethod = module[methodName]
 
           // @ts-ignore
-          app[method](path, { ...resolvedMethod, handler: dynamicHandler })
+          app[methodName.toLowerCase()](path, { ...resolvedMethod, handler: dynamicHandler })
         }
       }
     }
@@ -125,6 +136,8 @@ export async function createDevServer(vite: ViteDevServer, configEnv: ConfigEnv,
       return
     })
   }
+
+  let cleoConfig = await loadCleoConfig(vite)
 
   const restartableOpts = {
     runAfterLoad,

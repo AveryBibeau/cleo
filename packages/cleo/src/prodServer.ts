@@ -42,13 +42,14 @@ export async function createServer(ctx: CleoConfigCtx) {
 
     for (let method of routeMethods) {
       // @ts-ignore
-      if (module[method]) {
+      if (module[method] || module[method.toUpperCase()]) {
+        let methodName = module[method] ? method : method.toUpperCase()
         let resolvedMethod
-        if (typeof module[method] === 'function') resolvedMethod = await module[method](app)
-        else resolvedMethod = module[method]
+        if (typeof module[methodName] === 'function') resolvedMethod = await module[methodName](app)
+        else resolvedMethod = module[methodName]
 
         // @ts-ignore
-        app[method](path, { ...resolvedMethod })
+        app[methodName.toLowerCase()](path, { ...resolvedMethod })
       }
     }
   }
