@@ -11,7 +11,7 @@
     "@fastify/type-provider-typebox": "^2.4.0",
     "@mdx-js/mdx": "^2.1.5",
     "@mdx-js/rollup": "^2.1.5",
-    "@ordinal/cleo": "^0.5.1",
+    "@ordinal/cleo": "^0.6.1",
     "@sinclair/typebox": "^0.25.9",
     "fastify": "4.8.1",
     "mdx-prism": "^0.3.4",
@@ -25,7 +25,7 @@
     "postcss": "^8.4.19",
     "tailwindcss": "^3.2.4",
     "typescript": "^4.8.4",
-    "vite": "^3.2.2"
+    "vite": "^4.0.3"
   },
   "type": "module"
 }

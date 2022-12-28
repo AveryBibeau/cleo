@@ -1,6 +1,6 @@
 {
   "name": "@ordinal/cleo",
-  "version": "0.5.1",
+  "version": "0.6.1",
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch"
@@ -28,13 +28,13 @@
     "react-helmet": "^6.1.0",
     "typescript": "^4.8.3",
     "unplugin-auto-import": "^0.11.4",
-    "vite": "^3.2.2",
-    "vite-plugin-checker": "^0.5.1"
+    "vite": "^4.0.3",
+    "vite-plugin-checker": "^0.5.3"
   },
   "peerDependencies": {
     "fastify": "^4.8.1",
     "preact": "^10.11.2",
-    "vite": "^3.2.2"
+    "vite": "^4.0.3"
   },
   "exports": {
     "./package.json": "./package.json",

@@ -43,6 +43,10 @@ export function ensureCleoDirs(): Plugin {
     // AutoImport needs the output directory to exist before writing the file
     async configResolved() {
       await fs.ensureDir(path.resolve(root, './.cleo/@types/'))
+      await fs.copyFile(
+        path.resolve(__dirname, '../../src/includes/tsconfig.json'),
+        path.resolve(root, './.cleo/tsconfig.json')
+      )
     },
   }
 }
