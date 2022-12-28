@@ -24,7 +24,6 @@ export function baseViteConfig(): UserConfig {
       jsxFragment: 'Fragment',
     },
     build: {
-      target: 'es2020',
       commonjsOptions: {
         transformMixedEsModules: true,
       },
