@@ -5,7 +5,7 @@ import { isDev } from '../shared.js'
 export const ErrorLayout: FunctionComponent<{ error: FastifyError }> = ({ error }) => (
   <Fragment>
     <h1>Error: {error.statusCode ?? 500}</h1>
-    <p>{error.message}</p>
-    {isDev && <pre>{error.stack}</pre>}
+    {error.message && <p>{error.message}</p>}
+    {isDev && error.stack && <pre>{error.stack}</pre>}
   </Fragment>
 )

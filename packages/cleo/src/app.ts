@@ -1,4 +1,5 @@
 import fastify, { FastifyInstance, FastifyReply } from 'fastify'
+import { Fragment } from 'preact'
 
 import { ErrorLayout } from './layouts/error.js'
 
@@ -41,8 +42,9 @@ export async function createApp(app: FastifyInstance, opts: any) {
      */
     try {
       return await reply.status(error.statusCode ?? 500).render({
-        component: errorLayoutToUse,
-        props: { error },
+        layout: errorLayoutToUse,
+        layoutProps: { error },
+        component: Fragment,
       })
     } catch (e) {
       request.log.error(e)
