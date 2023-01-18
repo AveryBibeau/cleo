@@ -7,7 +7,7 @@ importers:
       '@fastify/type-provider-typebox': ^2.4.0
       '@mdx-js/mdx': ^2.1.5
       '@mdx-js/rollup': ^2.1.5
-      '@ordinal/cleo': ^0.6.1
+      '@ordinal/cleo': ^0.7.0
       '@sinclair/typebox': ^0.25.9
       '@types/mdx': ^2.0.3
       autoprefixer: ^10.4.13
@@ -24,7 +24,7 @@ importers:
       '@fastify/type-provider-typebox': 2.4.0_dz3oap3b2iftntmre7qk7ryye4
       '@mdx-js/mdx': 2.1.5
       '@mdx-js/rollup': 2.1.5
-      '@ordinal/cleo': 0.6.1_p2yvzeln72umdd4wjbc3m5hokq
+      '@ordinal/cleo': 0.7.0_p2yvzeln72umdd4wjbc3m5hokq
       '@sinclair/typebox': 0.25.10
       fastify: 4.8.1
       mdx-prism: 0.3.4
@@ -357,8 +357,8 @@ packages:
       '@nodelib/fs.scandir': 2.1.5
       fastq: 1.13.0
 
-  /@ordinal/cleo/0.6.1_p2yvzeln72umdd4wjbc3m5hokq:
-    resolution: {integrity: sha512-FuxBF/AjXkdLZvbkgQPs2ZAyUMa42UEUprGq1rICfzBEz8cGyXz/JFXmUDqOP2zhId9qzQq1LpukxYqa/gykVA==}
+  /@ordinal/cleo/0.7.0_p2yvzeln72umdd4wjbc3m5hokq:
+    resolution: {integrity: sha512-kjwp8RETa2gS6RfFFmJto5IESPAcIvrVMNTLf5FLtPdBTttGMUNnYRDVI99naQ4+1ZQhlLartwHu4ktchBwGRg==}
     engines: {node: '>=16.14'}
     peerDependencies:
       fastify: ^4.8.1
