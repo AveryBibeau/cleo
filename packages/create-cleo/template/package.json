@@ -8,7 +8,7 @@
   },
   "dependencies": {
     "@fastify/type-provider-typebox": "^2.4.0",
-    "@ordinal/cleo": "^0.6.1",
+    "@ordinal/cleo": "^0.6.2",
     "@sinclair/typebox": "^0.25.9",
     "fastify": "4.8.1",
     "preact": "^10.11.2"
